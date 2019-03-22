@@ -1,0 +1,7 @@
+joints: 
+  - wheel_right
+  - wheel_left
+  - joint1
+  - joint2
+  - joint3
+  - joint4
