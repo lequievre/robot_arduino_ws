@@ -66,7 +66,9 @@
 
 DynamixelWorkbench dxl_wb;
 
-ros::NodeHandle  nh;
+//ros::NodeHandle  nh;
+ros::NodeHandle_<ArduinoHardware, 25, 25, 512, 512> nh;
+
 //sensor_msgs::JointState wheel_joint_states_msg, arm_joint_states_msg;
 //ros::Publisher wheel_joint_states_pub("joint_states_wheel", &wheel_joint_states_msg);
 //ros::Publisher arm_joint_states_pub("joint_states_arm", &arm_joint_states_msg);
@@ -682,8 +684,10 @@ void setup() {
   
   Serial.begin(57600);
   while(!Serial); // Wait for Opening Serial Monitor
-  
+
+  nh.getHardware()->setBaud(115200);
   nh.initNode();
+  nh.getHardware()->setBaud(115200);
   //nh.advertise(wheel_joint_states_pub);
   //nh.advertise(arm_joint_states_pub);
 
