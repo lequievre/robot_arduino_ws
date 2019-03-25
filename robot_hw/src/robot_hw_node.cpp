@@ -54,7 +54,7 @@ int main( int argc, char** argv )
 	//the controller manager
 	controller_manager::ControllerManager manager(&my_robot_hw, my_robot_nh);
 	
-	ros::Rate loop_rate(50);
+	ros::Rate loop_rate(1);
 	
 	ros::Time last_time = ros::Time::now();
 	
