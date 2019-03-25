@@ -2,4 +2,8 @@ joint_state_controller:
    type: joint_state_controller/JointStateController
    publish_rate: 1
    
-    
+# Joint Group Position Controller
+joint_group_position_controller:
+   type: robot_controllers/JointGroupPosition
+   root_name: joint1
+   tip_name: joint4

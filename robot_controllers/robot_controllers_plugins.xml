@@ -1,0 +1,9 @@
+<library path="lib/librobot_controllers">
+	  
+	<class name="robot_controllers/JointGroupPosition" type="robot_controllers::JointGroupPosition" base_class_type="controller_interface::ControllerBase">
+		<description>
+			Info...
+		</description>
+	</class> 
+
+</library>
