@@ -94,11 +94,11 @@ namespace robot_hw
 		// Subscribe to /arduino/joint_states topic
 		
 		joint_state_arduino_sub_ = nh_.subscribe("/arduino/joint_states", 1, &RobotHW::jointStateArduinoCallback_, this);
-		joint_cmd_pos_arduino_pub_ = nh_.advertise<std_msgs::Float32MultiArray>("/arduino/cmd_pos", 5);
+		joint_cmd_pos_arduino_pub_ = nh_.advertise<std_msgs::Float32MultiArray>("/arduino/cmd_pos", 1);
 		
 		nh_.setCallbackQueue(&subscriber_queue_);
 		
-		subscriber_spinner_.reset(new ros::AsyncSpinner(1, &subscriber_queue_));
+		subscriber_spinner_.reset(new ros::AsyncSpinner(4, &subscriber_queue_));
 		subscriber_spinner_->start();
 	}
 	
