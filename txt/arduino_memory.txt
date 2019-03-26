@@ -1,0 +1,216 @@
+Arduino IDE
+===========
+
+If OpenCM9.04 does not download the program, connect the USB cable while holding down the “User Button”. Status LED will stay lit and the download will be initiated.
+
+
+If permission denied 
+sudo chmod 777 /dev/ttyACM0
+
+
+Example with ros :
+
+File/Examples/ROS/01-Basis/a_LED
+Download the file to OpenCM board
+This file create a ros topic named /led_out with a message of type std_msgs/Byte
+
+
+create a launch file on your laptop to launch rosserial_python :
+
+<launch>
+  <node pkg="rosserial_python" type="serial_node.py" name="turtlebot3_core" output="screen">
+    <param name="port" value="/dev/ttyACM0"/>
+    <param name="baud" value="115200"/>
+  </node>
+</launch>
+
+
+We can use the launch file "turtlebot3_core.launch" in package "turtlebot3_bringup" of turtlebot3 catkin worspace :
+
+cd ~/turtlebot3/catkin_ws
+source devel/setup.bash
+roslaunch turtlebot3_bringup turtlebot3_core.launch
+ 
+Now we got the topic "/led_out":
+
+rostopic list
+rostopic pub -1 /led_out std_msgs/Byte 1
+
+rostopic pub -1 GoalTorque std_msgs/Int16MultiArray "{data:[1, 500]}"
+
+Separate instructions :
+======================
+
+terminal 1:
+roscore
+
+terminal 2:
+rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0
+
+Dynamixel model MX-106
+----------------------
+
+File/Examples/OpenCM9.04/07_Dynamixel_SDK/protocol2.0/ping
+
+works fine a got result on monitor (menu Tools/serial monitor)
+
+Start..
+Succeeded to open the port!
+Succeeded to change the baudrate!
+ID : 1 ModelNumber : 0
+
+=======================================================
+
+
+
+
+
+
+
+
+rostopic pub -1 /led_out std_msgs/Byte 1
+
+
+
+Generate new message :
+====================
+
+-> create catkin workspace + create package + create a new message
+catkin_make the catkin workspace, add the path into $ROS_PACKAGE_PATH (source devel/setup.bash)
+-> recreate ros_lib with a python script make_libraries.py inside the ros package rosserial_client :
+rosrun rosserial_client make_libraries ~/Toto
+This script generate a new 'ros_lib' directory inside ~/Toto
+You just have to copy the directory associated to your ros package inside the directory ~/.arduino15/packages/OpenCM904/hardware/OpenCM904/1.4.0/libraries/ros_lib
+-> create an arduino sketch : #include <new_package/new_message.h>
+
+
+================================
+
+roslaunch rqt_plugins rospython_serial.launch
+
+rosrun rosserial_arduino make_libraries.py ~/Arduino/librairies/
+
+
+=======================================
+
+rostopic pub -1 /GoalTorque rqt_plugins/GoalTorque '{id: 1, goalTorque: 0}'
+
+==========================================
+Set serial USB baudrate
+
+get baudrate current value : sudo setserial -a /dev/ttyACM0
+
+set new baudrate value : sudo stty -F /dev/ttyACM0 1000000
+
+
+
+========== UPDATE FIRMWARE TO PROTOCOL 2.0 ======================
+
+faq about dynamixel : http://support.robotis.com/en/product/actuator/dxl_faq.htm
+
+download : http://www.robotis.us/roboplus2/
+R+ Manager 2.0 , 2.0.1 Windows (exe)
+
+doc about r+manager 2.0 : http://emanual.robotis.com/docs/en/software/rplus2/manager/
+(See Basic Features -> Firmware Update )
+
+Use a USB2Dynamixel to connect directly your laptop to a dynamixel : http://support.robotis.com/en/product/auxdevice/interface/usb2dxl_manual.htm
+
+Protocol 2 doc : http://emanual.robotis.com/docs/en/dxl/protocol2/
+
+=================== Test Twist Robot ============================================
+Download the code : ~/Projects/catkin_arduino_dynamixel_ws/src/rqt_plugins/arduino/mobile/mobile.ino
+
+launch ros python serial :
+-------------------------
+cd ~/Projects/catkin_arduino_dynamixel_ws
+source devel/setup.bash
+roslaunch rqt_plugins rospython_serial.launch
+
+Launch teleop node of turtlebot3 package :
+----------------------------------------
+cd ~/turtlebot3/catkin_ws
+source devel/setup.bash
+roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch
+
+See/echo joint_state :
+---------------------
+rostopic echo /joint_states
+
+Publish a twist :
+----------------
+rostopic pub -1 /cmd_vel geometry_msgs/Twist  '{linear:  {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.01,y: 0.0,z: 0.0}}'
+
+
+rostopic pub -1 /cmd_pos_arm std_msgs/Float32MultiArray "{data:[0, 0, 0, 0.0]}"
+
+Increase the buffer zize  of rosserial arduino NodeHandle :
+==========================================================
+
+have to modify the file ~/.arduino15/packages/OpenCM904/hardware/OpenCM904/1.4.0/libraries/ros_lib/ros.h
+and change the template parameters of NodeHandle_ object like that :
+typedef NodeHandle_<ArduinoHardware, 25, 25, 512, 512> NodeHandle;
+
+The default values are :
+typedef NodeHandle_<ArduinoHardware, 25, 25, 256, 256> NodeHandle;
+
+(The 2 first values are for the number of Publishers and Subscribers, the last 2 values are for buffer size.)
+/* Node Handle */
+  template<class Hardware,
+           int MAX_SUBSCRIBERS=25,
+           int MAX_PUBLISHERS=25,
+           int INPUT_SIZE=512,
+           int OUTPUT_SIZE=512>
+  class NodeHandle_ : public NodeHandleBase_
+
+Another Soft Solution :
+======================
+Define a NodeHandle_ object with template parameters
+ros::NodeHandle_<ArduinoHardware, 25, 25, 512, 512> nh;
+
+
+ros_control:
+===========
+
+rosservice call /controller_manager/list_controllers
+
+rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_group_position_controller'], stop_controllers: [], strictness: 2}"
+
+rostopic pub -1 joint_group_position/command std_msgs/Float64MultiArray "{data:[0, 0, 0, 0.0]}"
+
+
+rosserver c++
+=============
+roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+
+roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+rostopic hz /arduino/joint_states 
+rostopic echo /arduino/joint_states
+
+cd ~/Projects/catkin_arduino_robot_ws
+source devel/setup.bash
+roslaunch robot_hw robotHW.launch
+
+rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_group_position_controller'], stop_controllers: [], strictness: 2}"
+
+rosservice call /controller_manager/switch_controller "{start_controllers: [], stop_controllers: ['joint_group_position_controller'], strictness: 2}"
+
+rostopic pub -1 /joint_group_position/command std_msgs/Float64MultiArray "{data:[0.0, 0.0, 0.0, 0.0]}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
