@@ -67,7 +67,7 @@
 DynamixelWorkbench dxl_wb;
 
 //ros::NodeHandle  nh;
-ros::NodeHandle_<ArduinoHardware, 25, 25, 512, 512> nh;
+ros::NodeHandle_<ArduinoHardware, 25, 25, 2048, 2048> nh;
 
 //sensor_msgs::JointState wheel_joint_states_msg, arm_joint_states_msg;
 //ros::Publisher wheel_joint_states_pub("joint_states_wheel", &wheel_joint_states_msg);
@@ -401,7 +401,7 @@ void commandArmPositionCallback(const std_msgs::Float32MultiArray &msg)
 
   result = dxl_wb.syncWrite(ARM_SYNC_WRITE_HANDLER_FOR_GOAL_POSITION, arm_id_array, NB_JOINT_ARM, dynamixel_position, 1, &log);
 
-  if (result == false)
+ /* if (result == false)
   {
     Serial.println(log);
     Serial.println("Failed to sync write handler goal position");
@@ -409,7 +409,7 @@ void commandArmPositionCallback(const std_msgs::Float32MultiArray &msg)
   else
   {
     Serial.println("Succeeded to sync write handler goal velocity");
-  }
+  }*/
   
 }
 
@@ -682,7 +682,7 @@ void printWheelsInfos(void)
 
 void setup() {
   
-  Serial.begin(57600);
+  Serial.begin(115200);
   while(!Serial); // Wait for Opening Serial Monitor
 
   nh.getHardware()->setBaud(115200);
@@ -692,78 +692,93 @@ void setup() {
   //nh.advertise(arm_joint_states_pub);
 
   nh.advertise(joint_states_pub);
+  nh.spinOnce();
   nh.subscribe(cmd_vel_sub);
+  nh.spinOnce();
   nh.subscribe(cmd_arm_position_sub);
+  nh.spinOnce();
 
   if (!initWorkbench(DEVICE_NAME,BAUDRATE)) return;
 
+  nh.spinOnce();
+  
   // Wheel Part !
   getDynamixelsWheelInfo();
+
+  nh.spinOnce();
   
   if (!loadWheelDynamixels()) return;
+
+  nh.spinOnce();
+  
   initWheelDynamixels();
 
+  nh.spinOnce();
+
   if (!initWheelSyncRead()) return;
+
+  nh.spinOnce();
+  
   initWheelSyncWrite();
+
+  nh.spinOnce();
 
   //printWheelsInfos();
 
   // Arm Part !
   getDynamixelsArmInfo();
 
+  nh.spinOnce();
+
   if (!loadArmDynamixels()) return;
+
+  nh.spinOnce();
+  
   initArmDynamixels();
 
+  nh.spinOnce();
+
   if (!initArmSyncRead()) return;
-  initArmSyncWrite();
- 
-}
-
-void loop() {
-
-  readWheelSyncDatas();
-  readArmSyncDatas();
   
-  // Publish topic "arduino/joint_states"
-  joint_states_msg.header.stamp = nh.now();
+  nh.spinOnce();
+  
+  initArmSyncWrite();
+
+  nh.spinOnce();
+
   joint_states_msg.header.frame_id = "arduino_robot";
   joint_states_msg.velocity_length = 6;
   joint_states_msg.position_length = 6;
   joint_states_msg.effort_length = 6;
   joint_states_msg.name_length = 6;
   joint_states_msg.name = joint_names;
+
+  nh.spinOnce();
+ 
+}
+
+void loop() {
+
+  nh.spinOnce();
+  
+  readWheelSyncDatas();
+
+  nh.spinOnce();
+  
+  readArmSyncDatas();
+
+  nh.spinOnce();
+  
+  // Publish topic "arduino/joint_states"
+  joint_states_msg.header.stamp = nh.now();
   joint_states_msg.position = joint_position;
   joint_states_msg.velocity = joint_velocity;
   joint_states_msg.effort = joint_current;
 
+  nh.spinOnce();
+
   joint_states_pub.publish(&joint_states_msg);
   
-  /*wheel_joint_states_msg.header.stamp = nh.now();
-  wheel_joint_states_msg.header.frame_id = "kamal_robot_wheel";
-  wheel_joint_states_msg.velocity_length = 2;
-  wheel_joint_states_msg.position_length = 2;
-  wheel_joint_states_msg.effort_length = 2;
-  wheel_joint_states_msg.name_length = 2;
-  wheel_joint_states_msg.name = wheel_names;
-  wheel_joint_states_msg.position = wheel_position;
-  wheel_joint_states_msg.velocity = wheel_velocity;
-  wheel_joint_states_msg.effort = wheel_current;
-
-  wheel_joint_states_pub.publish(&wheel_joint_states_msg);
-
-  arm_joint_states_msg.header.stamp = nh.now();
-  arm_joint_states_msg.header.frame_id = "kamal_robot_arm";
-  arm_joint_states_msg.velocity_length = 4;
-  arm_joint_states_msg.position_length = 4;
-  arm_joint_states_msg.effort_length = 4;
-  arm_joint_states_msg.name_length = 4;
-  arm_joint_states_msg.name = arm_names;
-  arm_joint_states_msg.position = arm_position;
-  arm_joint_states_msg.velocity = arm_velocity;
-  arm_joint_states_msg.effort = arm_current;
-
-  arm_joint_states_pub.publish(&arm_joint_states_msg);*/
-
   nh.spinOnce();
   delay(1);
 }
