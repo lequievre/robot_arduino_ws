@@ -48,7 +48,7 @@
   #define DEVICE_NAME ""
 #endif  
 
-#define BAUDRATE  57600
+#define BAUDRATE  4500000
 #define DXL_ID_WHEEL_RIGHT   2
 #define DXL_ID_WHEEL_LEFT    3
 #define NB_JOINT_WHEEL       2
@@ -752,6 +752,9 @@ void setup() {
   joint_states_msg.effort_length = 6;
   joint_states_msg.name_length = 6;
   joint_states_msg.name = joint_names;
+  joint_states_msg.position = joint_position;
+  joint_states_msg.velocity = joint_velocity;
+  joint_states_msg.effort = joint_current;
 
   nh.spinOnce();
  
@@ -771,14 +774,8 @@ void loop() {
   
   // Publish topic "arduino/joint_states"
   joint_states_msg.header.stamp = nh.now();
-  joint_states_msg.position = joint_position;
-  joint_states_msg.velocity = joint_velocity;
-  joint_states_msg.effort = joint_current;
-
-  nh.spinOnce();
-
   joint_states_pub.publish(&joint_states_msg);
   
   nh.spinOnce();
-  delay(1);
+  //delay(1);
 }
