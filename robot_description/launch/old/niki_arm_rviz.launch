@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="model"/>
+  <arg name="gui" default="false"/>
+  <arg name="rvizconfig" default="$(find niki_arm_description)/rviz/niki_arm.rviz"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro.py $(find niki_arm_description)/urdf/$(arg model)"/>
+  <param name="use_gui" value="$(arg gui)"/>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+  <!-- Try this to see what happens if you do not save rviz file -->
+  <!--node name="rviz" pkg="rviz" type="rviz" required="true"/-->
+
+
+</launch>
