@@ -48,7 +48,7 @@
   #define DEVICE_NAME ""
 #endif  
 
-#define BAUDRATE  4500000
+#define BAUDRATE  1000000
 #define DXL_ID_WHEEL_RIGHT   2
 #define DXL_ID_WHEEL_LEFT    3
 #define NB_JOINT_WHEEL       2
@@ -682,7 +682,7 @@ void printWheelsInfos(void)
 
 void setup() {
   
-  Serial.begin(115200);
+  Serial.begin(57600);
   while(!Serial); // Wait for Opening Serial Monitor
 
   nh.getHardware()->setBaud(115200);
