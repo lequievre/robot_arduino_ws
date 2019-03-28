@@ -6,4 +6,12 @@
 		</description>
 	</class> 
 
+	<class name="robot_controllers/CartesianVelocityControl" type="robot_controllers::CartesianVelocityControl" base_class_type="controller_interface::ControllerBase">
+		<description>
+			Info...
+		</description>
+	</class> 
+
+	
+
 </library>

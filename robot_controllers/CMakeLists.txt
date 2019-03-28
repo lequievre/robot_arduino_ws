@@ -8,9 +8,13 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
   controller_interface
+  control_toolbox
+  urdf
+  kdl_parser
+  roscpp
   std_msgs
+  realtime_tools
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES robot_controllers
-  CATKIN_DEPENDS roscpp std_msgs controller_interface
+  CATKIN_DEPENDS roscpp std_msgs controller_interface control_toolbox kdl_parser urdf realtime_tools
 #  DEPENDS system_lib
 )
 
@@ -123,6 +127,7 @@ include_directories(
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/joint_group_position_controller.cpp
+  src/cartesian_controller.cpp
 )
 
 ## Add cmake target dependencies of the library

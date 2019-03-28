@@ -7,3 +7,10 @@ joint_group_position_controller:
    type: robot_controllers/JointGroupPosition
    root_name: joint1
    tip_name: joint4
+
+
+# Cartesian Velocity Controller
+cartesian_velocity_controller:
+   type: robot_controllers/CartesianVelocityControl
+   root_name: base_link
+   tip_name: endeffector
