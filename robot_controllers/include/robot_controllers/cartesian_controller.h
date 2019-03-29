@@ -29,6 +29,13 @@
 #include <kdl/jntarrayacc.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainiksolvervel_pinv.hpp>
+#include <kdl/chainiksolverpos_nr_jl.hpp>
+
+// Boost
+#include <boost/scoped_ptr.hpp>
+
 #define TRACE_ACTIVATED 1
 
 namespace robot_controllers
@@ -62,6 +69,15 @@ namespace robot_controllers
 			std::vector<double> commands_buffer_;	// the vector of desired joint values
 
 			KDL::Chain kdl_chain_;	// KDL chain construct from URDF
+			KDL::JntArrayAcc joint_msr_states_, joint_des_states_;  // joint states (measured and desired)s
+			
+			boost::scoped_ptr<KDL::ChainJntToJacSolver> jnt_to_jac_solver_;
+			boost::scoped_ptr<KDL::ChainFkSolverPos_recursive> fk_pos_solver_;
+			boost::scoped_ptr<KDL::ChainIkSolverVel_pinv> ik_vel_solver_;
+			boost::scoped_ptr<KDL::ChainIkSolverPos_NR_JL> ik_pos_solver_;
+			
+			KDL::Frame x_;		//current pose
+			KDL::Frame x_des_;	//desired pose
 
 			struct limits_
 			{
@@ -71,6 +87,8 @@ namespace robot_controllers
 			} joint_limits_; // KDL structures to store limits min, max, center of each joint
 
 			bool initKDLChain_();
+			
+			ros::Time last_time, current_time;
 	};
 }
 

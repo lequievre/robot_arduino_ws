@@ -80,7 +80,7 @@ namespace robot_controllers
 		if (!kdl_parser::treeFromUrdfModel(model, kdl_tree_))
 		{
 		    ROS_ERROR("CartesianVelocityControl -> (init) Failed to construct kdl tree");
-		    nh_.shutdown();
+		    //nh_.shutdown();
 		    return false;
 		}
 
@@ -115,6 +115,8 @@ namespace robot_controllers
 		    for( it=segment_map.begin(); it != segment_map.end(); it++ )
 		      ROS_INFO_STREAM( "    " << (*it).first);
 		}
+		
+		ROS_INFO("KDL Chain has %d joints !!!", kdl_chain_.getNrOfJoints());
 
 		// Parsing joint limits from urdf model along kdl chain
 		boost::shared_ptr<const urdf::Link> link_ = model.getLink(tip_name);	// A Link defined in a URDF structure
@@ -124,6 +126,9 @@ namespace robot_controllers
 		joint_limits_.min.resize(kdl_chain_.getNrOfJoints());
 		joint_limits_.max.resize(kdl_chain_.getNrOfJoints());
 		joint_limits_.center.resize(kdl_chain_.getNrOfJoints());
+		
+		joint_msr_states_.resize(kdl_chain_.getNrOfJoints());
+		joint_des_states_.resize(kdl_chain_.getNrOfJoints());
 
 		int index;
 		
@@ -169,6 +174,7 @@ namespace robot_controllers
 				joint_handles_.push_back(robot->getHandle(joint_names_[i+2]));
 		}
 		
+		
 		commands_buffer_.resize(n_joints_);
 		
 		for (int i=0; i < n_joints_; i++)
@@ -179,8 +185,7 @@ namespace robot_controllers
 		
 		sub_command_ = nh_.subscribe("joint_group_position/command", 1, &CartesianVelocityControl::commandCB_, this);
 		
-		cmd_flag_ = 0;  // set this flag to 0 to not to run the update method
-
+		
 
 		if (!initKDLChain_())
                 {
@@ -190,6 +195,26 @@ namespace robot_controllers
  		{
 			ROS_INFO("CartesianVelocityControl::init -> KDL Chain is loaded !!");
 		}
+		
+		// get joint positions
+        for(int i=0; i < joint_handles_.size(); i++)
+        {
+            joint_msr_states_.q(i) = joint_handles_[i].getPosition();
+            joint_msr_states_.qdot(i) = joint_handles_[i].getVelocity();
+            joint_des_states_.q(i) = joint_msr_states_.q(i);
+        }
+        
+        fk_pos_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
+        ik_vel_solver_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
+        ik_pos_solver_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_,joint_limits_.min,joint_limits_.max,*fk_pos_solver_,*ik_vel_solver_));
+		
+		// computing forward kinematics
+        fk_pos_solver_->JntToCart(joint_msr_states_.q, x_);
+
+        //Desired posture is the current one
+        x_des_ = x_;
+        
+        cmd_flag_ = 0;  // set this flag to 0 to not to run the update method
 		
 		
 		return true;
@@ -225,6 +250,7 @@ namespace robot_controllers
 		#if TRACE_ACTIVATED
 			ROS_INFO("CartesianVelocityControl: starting !");
 		#endif
+		last_time = ros::Time::now();
     }
     
     void CartesianVelocityControl::stopping(const ros::Time& time)
@@ -236,12 +262,35 @@ namespace robot_controllers
 	
 	void CartesianVelocityControl::update(const ros::Time& time, const ros::Duration& period)
 	{
-		if (cmd_flag_)
+		
+		// get joint positions
+        for(int i=0; i < joint_handles_.size(); i++)
+        {
+            joint_msr_states_.q(i) = joint_handles_[i].getPosition();
+        }
+        
+		// computing forward kinematics
+		fk_pos_solver_->JntToCart(joint_msr_states_.q, x_);
+		
+		current_time = ros::Time::now();
+		ros::Duration elapsed_time = current_time - last_time;
+		
+		
+		if (elapsed_time.toSec() >= 1.0)
+		{
+			ROS_INFO("x= %f, y = %f, z = %f", x_.p.x(), x_.p.y(), x_.p.z());
+			ROS_INFO("j1 = %f, j2=%f, j3=%f, j4=%f", joint_msr_states_.q(0), joint_msr_states_.q(1), joint_msr_states_.q(2), joint_msr_states_.q(3));
+			last_time = current_time;
+		}
+		
+		/*if (cmd_flag_)
 		{
 			// set control command for joints
 			for (int i = 0; i < n_joints_; i++)
 				joint_handles_[i].setCommand(commands_buffer_[i]);
-		}
+		}*/
+		
+		
 	}
 }
 
