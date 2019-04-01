@@ -132,6 +132,8 @@ namespace robot_controllers
 
 		int index;
 		
+		link_ = model.getLink(link_->getParent()->name);
+		
 		for (int i = 0; i < kdl_chain_.getNrOfJoints() && link_; i++)
 		{
 		    joint_ = model.getJoint(link_->parent_joint->name);
@@ -149,6 +151,7 @@ namespace robot_controllers
 
 		    link_ = model.getLink(link_->getParent()->name);
 		}
+		
 
 		return true;
 
@@ -196,6 +199,7 @@ namespace robot_controllers
 			ROS_INFO("CartesianVelocityControl::init -> KDL Chain is loaded !!");
 		}
 		
+		
 		// get joint positions
         for(int i=0; i < joint_handles_.size(); i++)
         {
@@ -215,7 +219,6 @@ namespace robot_controllers
         x_des_ = x_;
         
         cmd_flag_ = 0;  // set this flag to 0 to not to run the update method
-		
 		
 		return true;
 	}

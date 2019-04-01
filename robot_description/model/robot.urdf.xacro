@@ -27,18 +27,18 @@
     </inertial> 
 
     <collision>
-      <origin xyz="0 0 0.073" rpy="0 0 0"/>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
       <geometry>
-        <!--mesh filename="package://niki_arm_description/meshes/base_link2.stl" scale="0.01 0.01 0.01"/ -->
-        <box size="0.146 0.146 0.129"/>
+        <mesh filename="package://robot_description/new_meshes/base.stl" scale="0.001 0.001 0.001"/>
+        <!--box size="0.146 0.146 0.129"/ -->
       </geometry>
     </collision>
 
     <visual>
-      <origin xyz="0 0 0.073" rpy="0 0 0"/>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
       <geometry>
-        <!-- <mesh filename="package://niki_arm_description/meshes/base_link2.stl" scale="0.01 0.01 0.01"/> -->
-        <box size="0.146 0.146 0.129"/>
+        <mesh filename="package://robot_description/new_meshes/base.stl" scale="0.001 0.001 0.001"/>
+        <!--box size="0.146 0.146 0.129"/ -->
       </geometry>
       <material name="white"/>
     </visual>
@@ -64,17 +64,17 @@
     </inertial>
 
 		<visual>
-			<origin xyz="0 0 0.0205" rpy="0 0 0"/>
+			<origin xyz="0 0 0.0" rpy="0 0 0"/>
 			<geometry>
-				<mesh filename="package://robot_description/meshes/mx-64base.stl" scale="0.01 0.01 0.01"/>
+				<mesh filename="package://robot_description/new_meshes/mx-64tobase.stl" scale="0.01 0.01 0.01"/>
 			</geometry>
 			<material name="blue"/>
 		</visual>
 
 		<collision>
-			<origin xyz="0 0 0.0205" rpy="0 0 0"/>
+			<origin xyz="0 0 0.0" rpy="0 0 0"/>
 			<geometry>
-				<mesh filename="package://robot_description/meshes/mx-64base.stl" scale="0.01 0.01 0.01"/>
+				<mesh filename="package://robot_description/new_meshes/mx-64tobase.stl" scale="0.01 0.01 0.01"/>
 			</geometry>
 		</collision>
 	</link>	
@@ -83,7 +83,7 @@
   <joint name="joint1" type="revolute">
     <parent link="link_1"/>
     <child link="link_2"/>
-    <origin xyz="0 0.0 0.054" rpy="0 0 0"/>
+    <origin xyz="0 0.0 0.044" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <limit velocity="4.8" effort="1" lower="-1.56" upper="1.56" />
   </joint>
@@ -98,17 +98,17 @@
     </inertial>
 
     <visual>
-      <origin xyz="0 0 0.048" rpy="0 0 0"/>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robot_description/meshes/mx-64t2.stl" scale="0.01 0.01 0.01"/>
+        <mesh filename="package://robot_description/new_meshes/mx-64second.stl" scale="0.01 0.01 0.01"/>
       </geometry>
       <material name="red"/>
     </visual>
 
     <collision>
-      <origin xyz="0 0 0.048" rpy="0 0 0"/>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robot_description/meshes/mx-64t2.stl" scale="0.01 0.01 0.01"/>
+        <mesh filename="package://robot_description/new_meshes/mx-64second.stl" scale="0.01 0.01 0.01"/>
       </geometry>
     </collision>
   </link> 
@@ -117,7 +117,7 @@
   <joint name="joint2" type="revolute">
     <parent link="link_2"/>
     <child link="link_3"/>
-    <origin xyz="0 0.0 0.048" rpy="0 0 0"/>
+    <origin xyz="0 0.0 0.058" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit velocity="4.8" effort="1" lower="-1.56" upper="1.56" />
   </joint>
@@ -193,18 +193,16 @@
   <!-- EndEffector -->
   <link name="endeffector">
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robot_description/meshes/endeffector.stl" scale="0.001 0.001 0.001"/>
-        <!--<box size="0.05 0.026 0.076"/>-->
+        <mesh filename="package://robot_description/new_meshes/endeffector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
 
     <visual>
       <origin xyz="0 0 0.0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robot_description/meshes/endeffector.stl" scale="0.001 0.001 0.001"/>
-        <!--<box size="0.031 0.05 0.076"/>-->
+        <mesh filename="package://robot_description/new_meshes/endeffector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -215,5 +213,37 @@
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
   </link>
+  
+  <!-- joint5 -->
+  <joint name="joint5" type="fixed">
+    <parent link="endeffector"/>
+    <child link="link_grinder"/>
+    <origin xyz="0 0 0.065" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  
+  <link name="link_grinder">
+    <collision>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://robot_description/new_meshes/grinder.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
+      <geometry>
+         <mesh filename="package://robot_description/new_meshes/grinder.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
+      <mass value="0.050"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
    
    </robot>

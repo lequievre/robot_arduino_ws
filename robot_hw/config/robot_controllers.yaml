@@ -13,4 +13,4 @@ joint_group_position_controller:
 cartesian_velocity_controller:
    type: robot_controllers/CartesianVelocityControl
    root_name: link_1
-   tip_name: endeffector
+   tip_name: link_grinder
