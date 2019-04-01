@@ -85,6 +85,8 @@ namespace robot_hw
 		std::fill(joint_velocity_command_.begin(), joint_velocity_command_.end(), 0.0);
 		std::fill(joint_effort_command_.begin(), joint_effort_command_.end(), 0.0);
 		
+		//joint_position_command_[1] = 1.56;
+		
 		std::fill(joint_recv_position.begin(), joint_recv_position.end(), 0.0);
 		std::fill(joint_recv_velocity.begin(), joint_recv_velocity.end(), 0.0);
 		std::fill(joint_recv_effort.begin(), joint_recv_effort.end(), 0.0);

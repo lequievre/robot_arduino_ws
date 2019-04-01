@@ -21,6 +21,7 @@
 
 // msgs Float64MultiArray
 #include <std_msgs/Float64MultiArray.h>
+#include <geometry_msgs/Twist.h>
 
 // KDL
 #include <kdl/tree.hpp>
@@ -35,6 +36,11 @@
 
 // Boost
 #include <boost/scoped_ptr.hpp>
+
+#include <Eigen/Core>
+#include <Eigen/LU>
+#include <Eigen/SVD>
+using namespace Eigen;
 
 #define TRACE_ACTIVATED 1
 
@@ -55,6 +61,8 @@ namespace robot_controllers
 			ros::NodeHandle nh_;
 			int cmd_flag_;  // flag set only to 1 when the controller receive a message to the command topic
 			
+			int on_target_;
+			
 			std::string robot_namespace_;
 			
 			// configuration
@@ -63,10 +71,9 @@ namespace robot_controllers
 			
 			std::vector<hardware_interface::PositionJointInterface::ResourceHandleType> joint_handles_;
 			
-			void commandCB_(const std_msgs::Float64MultiArrayConstPtr& msg); // function associate to a subscribe command topic
+			void commandCB_(const geometry_msgs::TwistConstPtr& msg); // function associate to a subscribe command topic
 			
-			ros::Subscriber sub_command_;	
-			std::vector<double> commands_buffer_;	// the vector of desired joint values
+			ros::Subscriber sub_command_;
 
 			KDL::Chain kdl_chain_;	// KDL chain construct from URDF
 			KDL::JntArrayAcc joint_msr_states_, joint_des_states_;  // joint states (measured and desired)s
@@ -78,6 +85,13 @@ namespace robot_controllers
 			
 			KDL::Frame x_;		//current pose
 			KDL::Frame x_des_;	//desired pose
+			
+			KDL::Jacobian J_;	//Jacobian
+			
+			Eigen::MatrixXd J_pinv_;
+			Eigen::Matrix<double,3,3> skew_;
+			
+			KDL::Twist x_err_;
 
 			struct limits_
 			{
@@ -89,6 +103,41 @@ namespace robot_controllers
 			bool initKDLChain_();
 			
 			ros::Time last_time, current_time;
+			
+			struct quaternion_
+			{
+				KDL::Vector v;
+				double a;
+			} quat_curr_, quat_des_;
+
+			KDL::Vector v_temp_;
+			
+			inline void pseudo_inverse_(const Eigen::MatrixXd &M_, Eigen::MatrixXd &M_pinv_,bool damped = true)
+			{	
+				double lambda_ = damped?0.2:0.0;
+
+				JacobiSVD<MatrixXd> svd(M_, ComputeFullU | ComputeFullV);
+				JacobiSVD<MatrixXd>::SingularValuesType sing_vals_ = svd.singularValues();
+				MatrixXd S_ = M_;	// copying the dimensions of M_, its content is not needed.
+				S_.setZero();
+
+				for (int i = 0; i < sing_vals_.size(); i++)
+					S_(i,i) = (sing_vals_(i))/(sing_vals_(i)*sing_vals_(i) + lambda_*lambda_);
+
+				M_pinv_ = MatrixXd(svd.matrixV()*S_.transpose()*svd.matrixU().transpose());
+			}
+			
+			inline void skew_symmetric_(KDL::Vector &v_, Eigen::Matrix<double,3,3> &skew_mat_)
+			{
+				skew_mat_ = Eigen::Matrix<double,3,3>::Zero();
+				
+				skew_mat_(0,1) = -v_(2);
+				skew_mat_(0,2) =  v_(1);
+				skew_mat_(1,0) =  v_(2);
+				skew_mat_(1,2) = -v_(0);
+				skew_mat_(2,0) = -v_(1);
+				skew_mat_(2,1) =  v_(0);
+			}
 	};
 }
 

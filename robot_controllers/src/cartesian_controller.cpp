@@ -178,18 +178,9 @@ namespace robot_controllers
 		}
 		
 		
-		commands_buffer_.resize(n_joints_);
-		
-		for (int i=0; i < n_joints_; i++)
-        {
-            // set initial desired command values 
-            commands_buffer_[i] = 0.0;
-        }
-		
-		sub_command_ = nh_.subscribe("joint_group_position/command", 1, &CartesianVelocityControl::commandCB_, this);
+		sub_command_ = nh_.subscribe("cartesian_velocity_controller/command", 1, &CartesianVelocityControl::commandCB_, this);
 		
 		
-
 		if (!initKDLChain_())
                 {
 			ROS_ERROR_STREAM("CartesianVelocityControl::init -> NO KDL CHAIN !!");
@@ -208,44 +199,38 @@ namespace robot_controllers
             joint_des_states_.q(i) = joint_msr_states_.q(i);
         }
         
+        jnt_to_jac_solver_.reset(new KDL::ChainJntToJacSolver(kdl_chain_));
         fk_pos_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
         ik_vel_solver_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
         ik_pos_solver_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_,joint_limits_.min,joint_limits_.max,*fk_pos_solver_,*ik_vel_solver_));
 		
-		// computing forward kinematics
-        fk_pos_solver_->JntToCart(joint_msr_states_.q, x_);
-
-        //Desired posture is the current one
-        x_des_ = x_;
         
-        cmd_flag_ = 0;  // set this flag to 0 to not to run the update method
+        J_.resize(kdl_chain_.getNrOfJoints());
+
 		
 		return true;
 	}
 	
-	void CartesianVelocityControl::commandCB_(const std_msgs::Float64MultiArrayConstPtr& msg)
+	void CartesianVelocityControl::commandCB_(const geometry_msgs::TwistConstPtr& msg)
     {
-		#if TRACE_ACTIVATED
-			ROS_INFO("CartesianVelocityControl: commandCB_ !");
-		#endif	
-		
-		if(msg->data.size()!=n_joints_)
-	     { 
-	       ROS_ERROR_STREAM("CartesianVelocityControl: Dimension (of command (" << msg->data.size() << ") does not match number of joints (" << n_joints_ << ")! Not executing!");
-	       cmd_flag_ = 0;
-	       return; 
-	     }
-	     
-	     // clear buffers for initial values
-	     commands_buffer_.clear();
-	     
-	     for (size_t i=0; i<n_joints_; ++i)
-	     {
-			ROS_DEBUG_STREAM("msg->data[" << i << "]=" << msg->data[i]);
-			commands_buffer_.push_back(msg->data[i]);
-		 }
-	     
-	     cmd_flag_ = 1;
+		ROS_INFO("***** START CartesianVelocityControl::command ************");
+
+
+       ROS_INFO("***** CartesianVelocityControl::command position only ************");
+		x_des_ = KDL::Frame(
+		KDL::Rotation::RPY(msg->angular.x,
+						  msg->angular.y,
+						  msg->angular.z),
+		KDL::Vector(msg->linear.x,
+					msg->linear.y,
+					msg->linear.z));
+					
+
+        cmd_flag_ = 1;
+        
+        on_target_ = 0;
+        
+        ROS_INFO("***** FINISH CartesianVelocityControl::command ************");
 	}
 	
 	void CartesianVelocityControl::starting(const ros::Time& time)
@@ -254,6 +239,17 @@ namespace robot_controllers
 			ROS_INFO("CartesianVelocityControl: starting !");
 		#endif
 		last_time = ros::Time::now();
+		
+		// computing forward kinematics
+        fk_pos_solver_->JntToCart(joint_msr_states_.q, x_);
+        
+        //Desired posture is the current one
+        x_des_ = x_;
+        
+        cmd_flag_ = 0;  // set this flag to 0 to not to run the update method
+        
+        on_target_ = 0;
+          
     }
     
     void CartesianVelocityControl::stopping(const ros::Time& time)
@@ -261,6 +257,10 @@ namespace robot_controllers
 		#if TRACE_ACTIVATED
 			ROS_INFO("CartesianVelocityControl: stopping !");
 		#endif
+		
+		cmd_flag_ = 0;  // set this flag to 0 to not to run the update method
+		
+		on_target_ = 0;
 	}
 	
 	void CartesianVelocityControl::update(const ros::Time& time, const ros::Duration& period)
@@ -272,26 +272,101 @@ namespace robot_controllers
             joint_msr_states_.q(i) = joint_handles_[i].getPosition();
         }
         
-		// computing forward kinematics
-		fk_pos_solver_->JntToCart(joint_msr_states_.q, x_);
-		
-		current_time = ros::Time::now();
+        current_time = ros::Time::now();
 		ros::Duration elapsed_time = current_time - last_time;
-		
-		
+			
 		if (elapsed_time.toSec() >= 1.0)
 		{
-			ROS_INFO("x= %f, y = %f, z = %f", x_.p.x(), x_.p.y(), x_.p.z());
-			ROS_INFO("j1 = %f, j2=%f, j3=%f, j4=%f", joint_msr_states_.q(0), joint_msr_states_.q(1), joint_msr_states_.q(2), joint_msr_states_.q(3));
+			if (!on_target_)
+				ROS_INFO("x= %f, y = %f, z = %f", x_.p.x(), x_.p.y(), x_.p.z());
+			else 
+				ROS_INFO("ON TARGET !!");
+				
 			last_time = current_time;
 		}
+
+        if (cmd_flag_)
+        {
+			
+            // computing Jacobian
+            jnt_to_jac_solver_->JntToJac(joint_msr_states_.q, J_);
+
+            // computing J_pinv_
+            pseudo_inverse_(J_.data, J_pinv_);
+
+            // computing forward kinematics
+            fk_pos_solver_->JntToCart(joint_msr_states_.q, x_);
+            
+			SetToZero(x_err_);
+			
+            // end-effector position error
+            x_err_.vel = x_des_.p - x_.p;   //attention x_des is now a velocity in m/s 
+
+			
+            // getting quaternion from rotation matrix
+            x_.M.GetQuaternion(quat_curr_.v(0),quat_curr_.v(1),quat_curr_.v(2),quat_curr_.a);
+            x_des_.M.GetQuaternion(quat_des_.v(0),quat_des_.v(1),quat_des_.v(2),quat_des_.a);
+
+            skew_symmetric_(quat_des_.v, skew_);
+
+            for (int i = 0; i < skew_.rows(); i++)
+            {
+                v_temp_(i) = 0.0;
+                for (int k = 0; k < skew_.cols(); k++)
+                    v_temp_(i) += skew_(i,k)*(quat_curr_.v(k));
+            }
+
+            // end-effector orientation error
+            x_err_.rot = quat_curr_.a*quat_des_.v - quat_des_.a*quat_curr_.v - v_temp_;
+           
+
+            // computing q_dot
+            for (int i = 0; i < J_pinv_.rows(); i++)
+            {
+                joint_des_states_.qdot(i) = 0.0;
+                for (int k = 0; k < J_pinv_.cols(); k++)
+                    joint_des_states_.qdot(i) += J_pinv_(i,k)*x_err_(k); //removed scaling factor of .7
+          
+            }
+
+            // integrating q_dot -> getting q (Euler method)
+            for (int i = 0; i < joint_handles_.size(); i++)
+                joint_des_states_.q(i) += period.toSec()*joint_des_states_.qdot(i);
+
+            // joint limits saturation
+            for (int i =0;  i < joint_handles_.size(); i++)
+            {
+                if (joint_des_states_.q(i) < joint_limits_.min(i))
+                    joint_des_states_.q(i) = joint_limits_.min(i);
+                if (joint_des_states_.q(i) > joint_limits_.max(i))
+                    joint_des_states_.q(i) = joint_limits_.max(i);
+            }
+
+            if (Equal(x_, x_des_, 0.005))
+            {
+                ROS_INFO("On target");
+                on_target_ = 1;
+                cmd_flag_ = 0;
+            }
+            
+           /* 
+            ROS_INFO("update position desired -> x = %f, y = %f, z = %f", x_des_.p.x(), x_des_.p.y(), x_des_.p.z());
+            ROS_INFO("update position calculated -> x = %f, y = %f, z = %f", x_.p.x(), x_.p.y(), x_.p.z());
+            ROS_INFO("error translation (des-cal) -> x = %f, y = %f, z = %f", x_err_.vel.x(), x_err_.vel.y(), x_err_.vel.z());
+            ROS_INFO("update rotation calculated ->  O = %f, 1 = %f, 2 = %f, 3 = %f, 4 = %f, 5 = %f, 6 = %f, 7 = %f, 8 = %f", x_.M.data[0],x_.M.data[1],x_.M.data[2],x_.M.data[3],x_.M.data[4],x_.M.data[5],x_.M.data[6],x_.M.data[7],x_.M.data[8]);
+            ROS_INFO("update rotation desired ->  O = %f, 1 = %f, 2 = %f, 3 = %f, 4 = %f, 5 = %f, 6 = %f, 7 = %f, 8 = %f", x_des_.M.data[0],x_des_.M.data[1],x_des_.M.data[2],x_des_.M.data[3],x_des_.M.data[4],x_des_.M.data[5],x_des_.M.data[6],x_des_.M.data[7],x_des_.M.data[8]);
+           */
+
+	   // set controls for joints
+           for (int i = 0; i < joint_handles_.size(); i++)
+           {
+             joint_handles_[i].setCommand(joint_des_states_.q(i));
+           }
+            
+        }
+
+	//ROS_INFO("***** CartesianVelocityControl::update fin ************");
 		
-		/*if (cmd_flag_)
-		{
-			// set control command for joints
-			for (int i = 0; i < n_joints_; i++)
-				joint_handles_[i].setCommand(commands_buffer_[i]);
-		}*/
 		
 		
 	}

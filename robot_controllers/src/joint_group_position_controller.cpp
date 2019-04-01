@@ -55,6 +55,7 @@ namespace robot_controllers
             // set initial desired command values 
             commands_buffer_[i] = 0.0;
         }
+        
 		
 		sub_command_ = nh_.subscribe("joint_group_position/command", 1, &JointGroupPosition::commandCB_, this);
 		
