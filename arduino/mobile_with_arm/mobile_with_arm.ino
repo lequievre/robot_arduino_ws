@@ -777,5 +777,5 @@ void loop() {
   joint_states_pub.publish(&joint_states_msg);
   
   nh.spinOnce();
-  //delay(1);
+  delay(10);
 }
