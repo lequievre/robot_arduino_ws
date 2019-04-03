@@ -202,6 +202,14 @@ rosservice call /controller_manager/switch_controller "{start_controllers: ['car
 rostopic pub -1 /cartesian_velocity_controller/command geometry_msgs/Twist  '{linear:  {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.01,y: 0.0,z: 0.0}}'
 
 
+moveIt :
+=======
+
+Assistant 
+roslaunch moveit_setup_assistant setup_assistant.launch
+(https://ros-planning.github.io/moveit_tutorials/doc/setup_assistant/setup_assistant_tutorial.html)
+
+
 
 
 
