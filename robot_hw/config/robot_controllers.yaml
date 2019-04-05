@@ -14,3 +14,12 @@ cartesian_velocity_controller:
    type: robot_controllers/CartesianVelocityControl
    root_name: link_1
    tip_name: link_grinder
+
+
+joint_trajectory_controller:
+  type: "position_controllers/JointTrajectoryController"
+  joints:
+    - joint1
+    - joint2
+    - joint3
+    - joint4

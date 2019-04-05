@@ -209,6 +209,109 @@ Assistant
 roslaunch moveit_setup_assistant setup_assistant.launch
 (https://ros-planning.github.io/moveit_tutorials/doc/setup_assistant/setup_assistant_tutorial.html)
 
+0- Add controller joint_trajectory_controller to the yaml file and launch file of ros_control part :
+robot_hw/launch/robotHW.launch :
+
+<arg name="controllers" default="joint_group_position_controller cartesian_velocity_controller joint_trajectory_controller" />
+
+robot_hw/config/robot_controllers.yaml :
+
+joint_trajectory_controller:
+  type: "position_controllers/JointTrajectoryController"
+  joints:
+    - joint1
+    - joint2
+    - joint3
+    - joint4
+
+==> WE GOT new topics
+/joint_trajectory_controller/command
+/joint_trajectory_controller/follow_joint_trajectory/cancel
+/joint_trajectory_controller/follow_joint_trajectory/feedback
+/joint_trajectory_controller/follow_joint_trajectory/goal
+/joint_trajectory_controller/follow_joint_trajectory/result
+/joint_trajectory_controller/follow_joint_trajectory/status
+/joint_trajectory_controller/state
+
+
+1- Create controllers.yaml file and save it to robot_moveit/config
+(Here the name has to correspond to the name of the joint_trajectory_controller launched by ros_control)
+
+controller_list:
+  - name: joint_trajectory_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      
+      
+2- Add the moveit controller manager to the file robot_moveit_controller_manager.launch.xml
+
+<launch>
+ <!-- Set the param that trajectory_execution_manager needs to find the controller plugin -->
+ <arg name="moveit_controller_manager" default="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
+ <param name="moveit_controller_manager" value="$(arg moveit_controller_manager)"/>
+ <!-- load controller_list -->
+ <rosparam file="$(find robot_moveit_config)/config/controllers.yaml"/>
+</launch>
+
+3- Save as real.launch the file demo.launch
+
+3bis- Not necessary to load robot_description, this is done with the launch file of real controllers
+<arg name="load_robot_description" value="false"/>
+
+<!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
+  <include file="$(find robot_moveit)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+4- Modify the "move_group.launch" args values :
+"fake_execution" to false
+"info" to false
+"debug" to false
+
+<include file="$(find robot_moveit)/launch/move_group.launch">
+    <arg name="allow_trajectory_execution" value="true"/>
+    <arg name="fake_execution" value="false"/>
+    <arg name="info" value="false"/>
+    <arg name="debug" value="$(arg debug)"/>
+</include>
+
+5- comment joint_state_publisher and tf 
+
+<!-- We do not have a robot connected, so publish fake joint states -->
+  <!--<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="$(arg use_gui)"/>
+    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+  </node>-->
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <!--<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />-->
+
+  
+  
+  TO SOLVE MONDAY !!!!
+  
+  
+  
+
+launch :
+
+1-> roslaunch robot_hw robotHW.launch
+2-> roslaunch robot_moveit real.launch
+3-> start joint_trajectory_controller
+rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_trajectory_controller'], stop_controllers: [], strictness: 2}"
+
+
+
+
+
+
+
 
 
 
