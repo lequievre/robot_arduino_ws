@@ -67,6 +67,7 @@ namespace robot_hw
 			hardware_interface::EffortJointInterface joint_effort_interface_;
 			hardware_interface::PositionJointInterface joint_position_interface_;
 			
+			
 			ros::NodeHandle nh_;
 			
 			ros::CallbackQueue subscriber_queue_;

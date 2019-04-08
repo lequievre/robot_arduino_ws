@@ -301,6 +301,7 @@ controller_list:
 
 launch :
 
+0-> roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
 1-> roslaunch robot_hw robotHW.launch
 2-> roslaunch robot_moveit real.launch
 3-> start joint_trajectory_controller
