@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_name"     default="robot"/>
+  <arg name="use_rviz"       default="true" />
+  <arg name="use_gui"        default="true" />
+  
+  <arg name="linear_scale"        default="0.1" />
+  <arg name="angular_scale"        default="0.1" />
+  
+  <param name="linear_scale" value="$(arg linear_scale)" />
+  <param name="angular_scale" value="$(arg angular_scale)" />
+
+  <param name="robot_description"
+         command="$(find xacro)/xacro --inorder '$(find robot_description)/model/robot.urdf.xacro'"/>
+
+  <!-- Send joint values -->
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher">
+    <param name="/use_gui" value="$(arg use_gui)"/>
+    <rosparam param="source_list" subst_value="true">["$(arg robot_name)/joint_states"]</rosparam>
+  </node>
+
+  <!-- Combine joint values to TF-->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+
+  <!-- Show in Rviz -->
+  <group if="$(arg use_rviz)">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_description)/rviz/robot_interactive_marker.rviz"/>
+  </group>
+  
+  <node name="robot_mobile_marker" pkg="robot_markers_rviz" type="robot_markers_rviz_mobile_node" output="screen" />
+  
+</launch>

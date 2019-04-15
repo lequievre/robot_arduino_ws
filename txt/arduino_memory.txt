@@ -309,6 +309,42 @@ rosservice call /controller_manager/switch_controller "{start_controllers: ['joi
 
 
 
+USB latency :
+============
+
+http://www.joakimlinde.se/microcontrollers/arduino/avr/udev.php
+https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
+
+udevadm info -a -n /dev/ttyACM0
+
+add (in sudo) udev files in :
+/etc/udev/rules.d
+
+
+RVIZ Marker :
+============
+
+http://wiki.ros.org/rviz/Tutorials/Interactive%20Markers%3A%20Getting%20Started
+
+rosrun interactive_marker_tutorials basic_corols
+
+https://github.com/ros-visualization/interactive_marker_twist_server/blob/kinetic-devel/src/marker_server.cpp
+
+https://github.com/turtlebot/turtlebot_viz
+
+https://github.com/cse481sp17/cse481c/wiki/Lab-26:-Advanced-interactive-markers,-assignment-5-tips
+
+http://wiki.ros.org/turtlebot_arm_interactive_markers/Tutorials/UsingArmInteractiveMarkers
+
+http://wiki.ros.org/turtlebot_arm
+https://github.com/turtlebot/turtlebot_arm
+
+
+https://github.com/ros-visualization/visualization_tutorials/blob/indigo-devel/interactive_marker_tutorials/src/basic_controls.cpp#L266
+
+
+
+
 
 
 
