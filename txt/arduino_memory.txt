@@ -343,6 +343,10 @@ https://github.com/turtlebot/turtlebot_arm
 https://github.com/ros-visualization/visualization_tutorials/blob/indigo-devel/interactive_marker_tutorials/src/basic_controls.cpp#L266
 
 
+launch :
+0-> roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+1-> roslaunch robot_description robot_rviz_interactive_marker.launch
+
 
 
 
