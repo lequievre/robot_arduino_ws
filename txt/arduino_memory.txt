@@ -334,6 +334,8 @@ https://github.com/turtlebot/turtlebot_viz
 
 https://github.com/cse481sp17/cse481c/wiki/Lab-26:-Advanced-interactive-markers,-assignment-5-tips
 
+https://github.com/cse481sp17/cse481c/wiki/Lab-13:-Creating-Interactive-Visualizations-in-RViz-using-InteractiveMarkers
+
 http://wiki.ros.org/turtlebot_arm_interactive_markers/Tutorials/UsingArmInteractiveMarkers
 
 http://wiki.ros.org/turtlebot_arm
@@ -342,12 +344,18 @@ https://github.com/turtlebot/turtlebot_arm
 
 https://github.com/ros-visualization/visualization_tutorials/blob/indigo-devel/interactive_marker_tutorials/src/basic_controls.cpp#L266
 
+http://wiki.ros.org/remote_manipulation_markers
+
 
 launch :
 0-> roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
 1-> roslaunch robot_description robot_rviz_interactive_marker.launch
 
 
+Rviz marker tutorial :
+=====================
+https://github.com/ros-visualization/visualization_tutorials
+http://wiki.ros.org/rviz/Tutorials/
 
 
 
