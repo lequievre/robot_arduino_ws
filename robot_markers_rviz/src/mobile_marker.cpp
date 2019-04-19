@@ -58,6 +58,82 @@ float  current_position[NB_JOINTS];
 interactive_markers::MenuHandler menu_handler;
 tf::StampedTransform transform[NB_JOINTS];
 
+// Create tf listener
+boost::shared_ptr<tf::TransformListener> listener;
+
+
+void updatePoseOfAllMarkers()
+{
+	   geometry_msgs::Pose p;
+	   bool get_transform = false;
+	   
+	   // Marker joint2
+	   while (!get_transform)
+	   {
+		  try{
+		  
+				listener->lookupTransform("base_link", "link_3",ros::Time(0), transform[1]);
+				get_transform = true;                            
+										 
+										 }
+			catch (tf::TransformException &ex) {
+					ROS_INFO("%s",ex.what());
+					get_transform = false;
+					ros::Duration(1.0).sleep();
+			 }
+		}
+  
+        tf::pointTFToMsg(transform[1].getOrigin(), p.position);
+        
+        server->setPose("joint2_marker", p);
+        
+        // Marker joint3
+       get_transform = false;
+	   while (!get_transform)
+	   {
+		  try{
+		  
+				listener->lookupTransform("base_link", "link_4",ros::Time(0), transform[2]);
+				get_transform = true;                            
+										 
+										 }
+			catch (tf::TransformException &ex) {
+					ROS_INFO("%s",ex.what());
+					get_transform = false;
+					ros::Duration(1.0).sleep();
+			 }
+		}
+  
+        tf::pointTFToMsg(transform[2].getOrigin(), p.position);
+        
+        server->setPose("joint3_marker", p);
+        
+        // Marker joint4
+        get_transform = false;
+	   while (!get_transform)
+	   {
+		  try{
+		  
+				listener->lookupTransform("base_link", "endeffector",ros::Time(0), transform[3]);
+				get_transform = true;                            
+										 
+										 }
+			catch (tf::TransformException &ex) {
+					ROS_INFO("%s",ex.what());
+					get_transform = false;
+					ros::Duration(1.0).sleep();
+			 }
+		}
+  
+        tf::pointTFToMsg(transform[3].getOrigin(), p.position);
+        
+        server->setPose("joint4_marker", p);
+        
+        
+		server->applyChanges();
+	
+}
+
 void processMenuStopCb( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
   geometry_msgs::Twist vel;
@@ -119,8 +195,10 @@ void processJoint2Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    cmd.data[3] = current_position[3];
 	    
 	    cmd_pub.publish(cmd); 
+	    
+	    updatePoseOfAllMarkers();
 	   
-	   ROS_INFO(" joint2  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
+	    ROS_INFO(" joint2  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
 }
 
 void processJoint3Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -147,8 +225,10 @@ void processJoint3Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    cmd.data[3] = current_position[3];
 	    
 	    cmd_pub.publish(cmd); 
+	    
+	    updatePoseOfAllMarkers();
 	   
-	   ROS_INFO(" joint3  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
+	    ROS_INFO(" joint3  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
 }
 
 void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -175,8 +255,10 @@ void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    cmd.data[3] = pitch;
 	    
 	    cmd_pub.publish(cmd); 
+	    
+	    updatePoseOfAllMarkers();
 	   
-	   ROS_INFO(" joint4  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
+	    ROS_INFO(" joint4  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
 }
 
 
@@ -210,15 +292,15 @@ int main(int argc, char** argv)
   vel_pub = nh.advertise<geometry_msgs::Twist>("/arduino/cmd_vel", 1);
   cmd_pub = nh.advertise<std_msgs::Float32MultiArray>("/arduino/cmd_pos", 1);
   joint_states_sub = nh.subscribe<sensor_msgs::JointState> ("/arduino/joint_states", 1, jointStateCallback);
-
-
-  // Create tf listener
-  tf::TransformListener listener;
+  
+  ros::Duration(1.0).sleep();
   
   bool get_transform = false;
   
   // Create a Maker Server for the Robot
   server.reset( new interactive_markers::InteractiveMarkerServer("mobile_marker_server") );
+  
+  listener.reset( new tf::TransformListener());
 
   // create an interactive marker for the mobile part
   visualization_msgs::InteractiveMarker int_marker;
@@ -275,7 +357,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener.lookupTransform("base_link", "link_2",ros::Time(0), transform[0]);
+			listener->lookupTransform("base_link", "link_2",ros::Time(0), transform[0]);
 			get_transform = true;                            
 									 
 									 }
@@ -311,7 +393,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener.lookupTransform("base_link", "link_3",ros::Time(0), transform[1]);
+			listener->lookupTransform("base_link", "link_3",ros::Time(0), transform[1]);
 			get_transform = true;                            
 									 
 									 }
@@ -347,7 +429,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener.lookupTransform("base_link", "link_4",ros::Time(0), transform[2]);
+			listener->lookupTransform("base_link", "link_4",ros::Time(0), transform[2]);
 			get_transform = true;                            
 									 
 									 }
@@ -383,7 +465,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener.lookupTransform("base_link", "endeffector",ros::Time(0), transform[3]);
+			listener->lookupTransform("base_link", "endeffector",ros::Time(0), transform[3]);
 			get_transform = true;                            
 									 
 									 }

@@ -103,7 +103,7 @@ int32_t arm_raw_velocity[4] = {0, 0, 0, 0};
 float joint_position[NB_JOINT_WHEEL+NB_JOINT_ARM] = { 0.0 };
 float joint_current[NB_JOINT_WHEEL+NB_JOINT_ARM] = { 0.0 };
 float joint_velocity[NB_JOINT_WHEEL+NB_JOINT_ARM] = { 0.0 };
-char *joint_names[NB_JOINT_WHEEL+NB_JOINT_ARM] = { "wheel_right", "wheel_left", "joint_1", "joint_2", "joint_3", "joint_4" };
+char *joint_names[NB_JOINT_WHEEL+NB_JOINT_ARM] = { "wheel_right", "wheel_left", "joint1", "joint2", "joint3", "joint4" };
 
 bool initWheelSyncWrite(void)
 {
