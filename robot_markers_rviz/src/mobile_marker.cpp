@@ -82,8 +82,9 @@ void updatePoseOfAllMarkers()
 					ros::Duration(1.0).sleep();
 			 }
 		}
-  
+		
         tf::pointTFToMsg(transform[1].getOrigin(), p.position);
+        tf::quaternionTFToMsg(transform[1].getRotation(), p.orientation);
         
         server->setPose("joint2_marker", p);
         
@@ -105,6 +106,7 @@ void updatePoseOfAllMarkers()
 		}
   
         tf::pointTFToMsg(transform[2].getOrigin(), p.position);
+        tf::quaternionTFToMsg(transform[2].getRotation(), p.orientation);
         
         server->setPose("joint3_marker", p);
         
@@ -126,6 +128,7 @@ void updatePoseOfAllMarkers()
 		}
   
         tf::pointTFToMsg(transform[3].getOrigin(), p.position);
+        tf::quaternionTFToMsg(transform[3].getRotation(), p.orientation);
         
         server->setPose("joint4_marker", p);
         
@@ -167,6 +170,8 @@ void processJoint1Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    cmd.data[3] = current_position[3];
 	    
 	    cmd_pub.publish(cmd); 
+	    
+	    updatePoseOfAllMarkers();
 	   
 	   ROS_INFO(" joint1 = %f",yaw);
 }
@@ -369,6 +374,7 @@ int main(int argc, char** argv)
   }
   
   tf::pointTFToMsg(transform[0].getOrigin(), int_marker_joint1.pose.position);
+  tf::quaternionTFToMsg(transform[0].getRotation(), int_marker_joint1.pose.orientation);
 
   int_marker_joint1.controls.push_back(controlJoint1);
   server->insert(int_marker_joint1, &processJoint1Feedback);
@@ -405,6 +411,7 @@ int main(int argc, char** argv)
   }
   
   tf::pointTFToMsg(transform[1].getOrigin(), int_marker_joint2.pose.position);
+  tf::quaternionTFToMsg(transform[1].getRotation(), int_marker_joint2.pose.orientation);
 
   int_marker_joint2.controls.push_back(controlJoint2);
   server->insert(int_marker_joint2, &processJoint2Feedback);
@@ -441,6 +448,7 @@ int main(int argc, char** argv)
   }
   
   tf::pointTFToMsg(transform[2].getOrigin(), int_marker_joint3.pose.position);
+  tf::quaternionTFToMsg(transform[2].getRotation(), int_marker_joint3.pose.orientation);
 
   int_marker_joint3.controls.push_back(controlJoint3);
   server->insert(int_marker_joint3, &processJoint3Feedback);
@@ -477,6 +485,7 @@ int main(int argc, char** argv)
   }
   
   tf::pointTFToMsg(transform[3].getOrigin(), int_marker_joint4.pose.position);
+  tf::quaternionTFToMsg(transform[3].getRotation(), int_marker_joint4.pose.orientation);
 
   int_marker_joint4.controls.push_back(controlJoint4);
   server->insert(int_marker_joint4, &processJoint4Feedback);
