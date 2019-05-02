@@ -72,7 +72,7 @@ void updatePoseOfAllMarkers()
 	   {
 		  try{
 		  
-				listener->lookupTransform("base_link", "link_3",ros::Time(0), transform[1]);
+				listener->lookupTransform("link_2", "link_3",ros::Time(0), transform[1]);
 				get_transform = true;                            
 										 
 										 }
@@ -94,7 +94,7 @@ void updatePoseOfAllMarkers()
 	   {
 		  try{
 		  
-				listener->lookupTransform("base_link", "link_4",ros::Time(0), transform[2]);
+				listener->lookupTransform("link_3", "link_4",ros::Time(0), transform[2]);
 				get_transform = true;                            
 										 
 										 }
@@ -116,7 +116,7 @@ void updatePoseOfAllMarkers()
 	   {
 		  try{
 		  
-				listener->lookupTransform("base_link", "endeffector",ros::Time(0), transform[3]);
+				listener->lookupTransform("link_4", "endeffector",ros::Time(0), transform[3]);
 				get_transform = true;                            
 										 
 										 }
@@ -174,82 +174,62 @@ void processJoint1Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    updatePoseOfAllMarkers();
 	   
 	   ROS_INFO(" joint1 = %f",yaw);
+	   ROS_INFO(" joint1 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
 }
 
 void processJoint2Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
 	
-	    //double yaw = tf::getPitch(feedback->pose.orientation);
-	    
-	    tf::Quaternion q(
-        feedback->pose.orientation.x,
-        feedback->pose.orientation.y,
-        feedback->pose.orientation.z,
-		feedback->pose.orientation.w);
-	    
-	    tf::Matrix3x3 m(q);
-		double roll, pitch, yaw;
-		m.getRPY(roll, pitch, yaw);
-	
-	    std_msgs::Float32MultiArray cmd;
-	    
-	    cmd.data.resize(NB_JOINTS);
-	    cmd.data[0] = current_position[0];
-	    cmd.data[1] = pitch;
-	    cmd.data[2] = current_position[2];
-	    cmd.data[3] = current_position[3];
-	    
-	    cmd_pub.publish(cmd); 
-	    
-	    updatePoseOfAllMarkers();
-	   
-	    ROS_INFO(" joint2  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
+	switch ( feedback->event_type )
+	{
+		case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
+
+			double yaw = tf::getYaw(feedback->pose.orientation);
+		
+			std_msgs::Float32MultiArray cmd;
+			
+			cmd.data.resize(NB_JOINTS);
+			cmd.data[0] = current_position[0];
+			cmd.data[1] = yaw;
+			cmd.data[2] = current_position[2];
+			cmd.data[3] = current_position[3];
+			
+			cmd_pub.publish(cmd); 
+			
+			updatePoseOfAllMarkers();
+		   
+			ROS_INFO(" joint2 = %f",yaw);
+			ROS_INFO(" joint2 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
+			
+	    break;
+	 }
 }
 
 void processJoint3Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
 	
-	    //double yaw = tf::getPitch(feedback->pose.orientation);
+	    double yaw = tf::getYaw(feedback->pose.orientation);
 	    
-	    tf::Quaternion q(
-        feedback->pose.orientation.x,
-        feedback->pose.orientation.y,
-        feedback->pose.orientation.z,
-		feedback->pose.orientation.w);
-	    
-	    tf::Matrix3x3 m(q);
-		double roll, pitch, yaw;
-		m.getRPY(roll, pitch, yaw);
-	
 	    std_msgs::Float32MultiArray cmd;
 	    
 	    cmd.data.resize(NB_JOINTS);
 	    cmd.data[0] = current_position[0];
 	    cmd.data[1] = current_position[1];
-	    cmd.data[2] = pitch;
+	    cmd.data[2] = yaw;
 	    cmd.data[3] = current_position[3];
 	    
 	    cmd_pub.publish(cmd); 
 	    
 	    updatePoseOfAllMarkers();
 	   
-	    ROS_INFO(" joint3  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
+	    ROS_INFO(" joint3 = %f",yaw);
+	    ROS_INFO(" joint3 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
 }
 
 void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
 	
-	    //double yaw = tf::getPitch(feedback->pose.orientation);
-	    
-	    tf::Quaternion q(
-        feedback->pose.orientation.x,
-        feedback->pose.orientation.y,
-        feedback->pose.orientation.z,
-		feedback->pose.orientation.w);
-	    
-	    tf::Matrix3x3 m(q);
-		double roll, pitch, yaw;
-		m.getRPY(roll, pitch, yaw);
+	    double yaw = tf::getYaw(feedback->pose.orientation);
 	
 	    std_msgs::Float32MultiArray cmd;
 	    
@@ -257,13 +237,14 @@ void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    cmd.data[0] = current_position[0];
 	    cmd.data[1] = current_position[1];
 	    cmd.data[2] = current_position[2];
-	    cmd.data[3] = pitch;
+	    cmd.data[3] = yaw;
 	    
 	    cmd_pub.publish(cmd); 
 	    
 	    updatePoseOfAllMarkers();
 	   
-	    ROS_INFO(" joint4  pitch = %f, roll = %f, yaw = %f",pitch,roll,yaw);
+	    ROS_INFO(" joint4 = %f",yaw);
+	    ROS_INFO(" joint4 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
 }
 
 
@@ -343,7 +324,7 @@ int main(int argc, char** argv)
 
   // Create Joint 1 Control
   visualization_msgs::InteractiveMarker int_marker_joint1;
-  int_marker_joint1.header.frame_id = "base_link";
+  int_marker_joint1.header.frame_id = "link_1";
   int_marker_joint1.header.stamp=ros::Time::now();
   int_marker_joint1.name = "joint1_marker";
   int_marker_joint1.description = "Joint1 Control";
@@ -362,7 +343,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener->lookupTransform("base_link", "link_2",ros::Time(0), transform[0]);
+			listener->lookupTransform("link_1", "link_2",ros::Time(0), transform[0]);
 			get_transform = true;                            
 									 
 									 }
@@ -381,14 +362,15 @@ int main(int argc, char** argv)
   
   // Create Joint 2 Control
   visualization_msgs::InteractiveMarker int_marker_joint2;
-  int_marker_joint2.header.frame_id = "base_link";
+  int_marker_joint2.header.frame_id = "link_2";
   int_marker_joint2.header.stamp=ros::Time::now();
   int_marker_joint2.name = "joint2_marker";
   int_marker_joint2.description = "Joint2 Control";
   int_marker_joint2.scale = 0.1;
   visualization_msgs::InteractiveMarkerControl controlJoint2;
 
-  tf::Quaternion orien2(0.0, 0.0, 1.0, 1.0);
+  //tf::Quaternion orien2(0.0, 0.0, 1.0, 1.0);
+  tf::Quaternion orien2(0.0, 1.0, 0.0, 1.0);
   orien2.normalize();
   tf::quaternionTFToMsg(orien2, controlJoint2.orientation);
   controlJoint2.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
@@ -399,7 +381,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener->lookupTransform("base_link", "link_3",ros::Time(0), transform[1]);
+			listener->lookupTransform("link_2", "link_3",ros::Time(0), transform[1]);
 			get_transform = true;                            
 									 
 									 }
@@ -418,14 +400,15 @@ int main(int argc, char** argv)
   
   // Create Joint 3 Control
   visualization_msgs::InteractiveMarker int_marker_joint3;
-  int_marker_joint3.header.frame_id = "base_link";
+  int_marker_joint3.header.frame_id = "link_3";
   int_marker_joint3.header.stamp=ros::Time::now();
   int_marker_joint3.name = "joint3_marker";
   int_marker_joint3.description = "Joint3 Control";
   int_marker_joint3.scale = 0.1;
   visualization_msgs::InteractiveMarkerControl controlJoint3;
 
-  tf::Quaternion orien3(0.0, 0.0, 1.0, 1.0);
+  //tf::Quaternion orien3(0.0, 0.0, 1.0, 1.0);
+  tf::Quaternion orien3(0.0, 1.0, 0.0, 1.0);
   orien3.normalize();
   tf::quaternionTFToMsg(orien3, controlJoint3.orientation);
   controlJoint3.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
@@ -436,7 +419,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener->lookupTransform("base_link", "link_4",ros::Time(0), transform[2]);
+			listener->lookupTransform("link_3", "link_4",ros::Time(0), transform[2]);
 			get_transform = true;                            
 									 
 									 }
@@ -455,14 +438,15 @@ int main(int argc, char** argv)
   
   // Create Joint 4 Control
   visualization_msgs::InteractiveMarker int_marker_joint4;
-  int_marker_joint4.header.frame_id = "base_link";
+  int_marker_joint4.header.frame_id = "link_4";
   int_marker_joint4.header.stamp=ros::Time::now();
   int_marker_joint4.name = "joint4_marker";
   int_marker_joint4.description = "Joint4 Control";
   int_marker_joint4.scale = 0.1;
   visualization_msgs::InteractiveMarkerControl controlJoint4;
 
-  tf::Quaternion orien4(0.0, 0.0, 1.0, 1.0);
+  //tf::Quaternion orien4(0.0, 0.0, 1.0, 1.0);
+  tf::Quaternion orien4(0.0, 1.0, 0.0, 1.0);
   orien4.normalize();
   tf::quaternionTFToMsg(orien4, controlJoint4.orientation);
   controlJoint4.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
@@ -473,7 +457,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener->lookupTransform("base_link", "endeffector",ros::Time(0), transform[3]);
+			listener->lookupTransform("link_4", "endeffector",ros::Time(0), transform[3]);
 			get_transform = true;                            
 									 
 									 }
