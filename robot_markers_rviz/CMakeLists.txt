@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   interactive_markers
   kdl_parser
   urdf
+  tf2
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES robot_markers_rviz
-  CATKIN_DEPENDS roscpp visualization_msgs interactive_markers kdl_parser urdf
+  CATKIN_DEPENDS roscpp visualization_msgs interactive_markers kdl_parser urdf tf2
 #  DEPENDS system_lib
 )
 

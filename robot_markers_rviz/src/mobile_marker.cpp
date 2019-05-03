@@ -40,6 +40,7 @@
 #include <interactive_markers/menu_handler.h>
 
 #include <tf/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <urdf/model.h>
 
 // KDL
@@ -181,7 +182,7 @@ bool getJointsLimitsFromURDF(ros::NodeHandle& nh)
 		    joint_limits.max(index) = joint->limits->upper;
 		    joint_limits.center(index) = (joint_limits.min(index) + joint_limits.max(index))/2;
 
-		    ROS_INFO("-> min = %f, max = %f, center = %f", joint_limits.min(index), joint_limits.max(index),joint_limits.center(index));
+		    ROS_INFO("-> index = %d, min = %f, max = %f, center = %f", index, joint_limits.min(index), joint_limits.max(index),joint_limits.center(index));
 
 		    link = model.getLink(link->getParent()->name);
 		}
@@ -263,6 +264,17 @@ void updatePoseOfAllMarkers(const ros::TimerEvent&)
         p.orientation =  current_rotation[3];
         //tf::quaternionTFToMsg(transform[3].getRotation(), p.orientation);
         
+        /*tf2::Quaternion quat_tf;
+        quat_tf.setRPY( 0, 0, current_position[3] );
+        quat_tf.normalize();
+        
+        geometry_msgs::Quaternion quat_msg;
+        tf2::fromMsg(quat_msg, quat_tf);
+        
+        p.orientation = quat_msg;*/
+        
+        
+        
         server->setPose("joint4_marker", p);
         
         
@@ -296,13 +308,15 @@ void processJoint1Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 {
 	    double yaw = tf::getYaw(feedback->pose.orientation);
 	    
-	    current_rotation[0] = feedback->pose.orientation;
-	    
 	    if (yaw < joint_limits.min(0))
 	      yaw = joint_limits.min(0);
-	      
-	    if (yaw > joint_limits.max(0))
-	      yaw = joint_limits.max(0);
+	    else
+	    {  
+			if (yaw > joint_limits.max(0))
+				yaw = joint_limits.max(0);
+			else
+				current_rotation[0] = feedback->pose.orientation;
+		}
 	
 	    std_msgs::Float32 cmd;
 	    
@@ -319,15 +333,17 @@ void processJoint1Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 void processJoint2Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
 	double yaw = tf::getYaw(feedback->pose.orientation);
-	
-	current_rotation[1] = feedback->pose.orientation;
-	
+
 	if (yaw < joint_limits.min(1))
 	      yaw = joint_limits.min(1);
-	      
-	if (yaw > joint_limits.max(1))
-	      yaw = joint_limits.max(1);
-
+	else
+	{  
+		if (yaw > joint_limits.max(1))
+			yaw = joint_limits.max(1);
+		else
+			current_rotation[1] = feedback->pose.orientation;
+	}
+	
 	std_msgs::Float32 cmd;
 	    
 	cmd.data = yaw;
@@ -344,15 +360,17 @@ void processJoint2Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 void processJoint3Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
 	    double yaw = tf::getYaw(feedback->pose.orientation);
-	    
-	    current_rotation[2] = feedback->pose.orientation;
-	    
+	     
 	    if (yaw < joint_limits.min(2))
 	      yaw = joint_limits.min(2);
-	      
-	    if (yaw > joint_limits.max(2))
-	      yaw = joint_limits.max(2);
-	    
+	    else
+	    {  
+			if (yaw > joint_limits.max(2))
+				yaw = joint_limits.max(2);
+			else
+				current_rotation[2] = feedback->pose.orientation;
+		}
+	
 	    std_msgs::Float32 cmd;
 	    
 	    cmd.data = yaw;
@@ -369,13 +387,16 @@ void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 {
 	    double yaw = tf::getYaw(feedback->pose.orientation);
 	    
-	    current_rotation[3] = feedback->pose.orientation;
-	    
 	    if (yaw < joint_limits.min(3))
 	      yaw = joint_limits.min(3);
-	      
-	    if (yaw > joint_limits.max(3))
-	      yaw = joint_limits.max(3);
+	    else
+	    {  
+			if (yaw > joint_limits.max(3))
+				yaw = joint_limits.max(3);
+			else
+				current_rotation[3] = feedback->pose.orientation;
+		}
+	
 	
 	    std_msgs::Float32 cmd;
 	    
