@@ -27,8 +27,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-// %Tag(fullSource)%
 #include <ros/ros.h>
 
 #include <interactive_markers/interactive_marker_server.h>
@@ -42,6 +40,14 @@
 #include <interactive_markers/menu_handler.h>
 
 #include <tf/transform_listener.h>
+#include <urdf/model.h>
+
+// KDL
+#include <kdl/tree.hpp>
+#include <kdl/kdl.hpp>
+#include <kdl/chain.hpp>
+#include <kdl/jntarrayacc.hpp>
+#include <kdl_parser/kdl_parser.hpp>
 
 #define NB_JOINTS 4
 
@@ -63,6 +69,127 @@ geometry_msgs::Quaternion current_rotation[NB_JOINTS];
 
 // Create tf listener
 boost::shared_ptr<tf::TransformListener> listener;
+
+struct limits
+{
+	KDL::JntArray min;
+	KDL::JntArray max;
+	KDL::JntArray center;
+} joint_limits; // KDL structures to store limits min, max, center of each joint
+
+bool getJointsLimitsFromURDF(ros::NodeHandle& nh)
+{
+		std::string robot_description, root_name, tip_name;
+		
+		root_name = "link_1";
+		tip_name = "link_grinder";
+
+		if (!ros::param::search(nh.getNamespace(),"robot_description", robot_description))
+		{
+		    ROS_ERROR_STREAM("No robot description (URDF) found on parameter server (" << nh.getNamespace() << "/robot_description)");
+		    return false;
+		}
+
+		ROS_INFO("root_name = %s",root_name.c_str());
+		ROS_INFO("tip_name = %s",tip_name.c_str());
+
+		// Construct an URDF model from the xml string
+		std::string xml_string;
+
+		if (nh.hasParam(robot_description))
+		    nh.getParam(robot_description.c_str(), xml_string);
+		else
+		{
+		    ROS_ERROR("Parameter %s not set ...",robot_description.c_str());
+		    return false;
+		}
+
+		// Get urdf model out of robot_description
+		urdf::Model model;
+		if (!model.initString(xml_string))
+		{
+		    ROS_ERROR("Failed to parse urdf file");
+		    return false;
+		}
+
+		KDL::Tree kdl_tree;
+		// Parse URDF to get the KDL tree
+		if (!kdl_parser::treeFromUrdfModel(model, kdl_tree))
+		{
+		    ROS_ERROR("Failed to construct kdl tree");
+		    return false;
+		}
+
+		KDL::Chain kdl_chain;	// KDL chain construct from URDF
+		
+		// Populate the KDL chain
+		if(!kdl_tree.getChain(root_name, tip_name, kdl_chain))
+		{
+		    ROS_ERROR_STREAM("Failed to get KDL chain from tree: ");
+		    ROS_ERROR_STREAM("  " << root_name << " --> " << tip_name);
+		    ROS_ERROR_STREAM("  Tree has " << kdl_tree.getNrOfJoints() << " joints");
+		    ROS_ERROR_STREAM("  Tree has " << kdl_tree.getNrOfSegments() << " segments");
+		    ROS_ERROR_STREAM("  The segments are:");
+
+		    KDL::SegmentMap segment_map = kdl_tree.getSegments();
+		    KDL::SegmentMap::iterator it;
+
+		    for( it=segment_map.begin(); it != segment_map.end(); it++ )
+		      ROS_ERROR_STREAM( "    " << (*it).first);
+
+		    return false;
+		}
+		else
+		{
+		    ROS_INFO_STREAM("The KDL chain from tree is : ");
+		    ROS_INFO_STREAM("  " << root_name << " --> " << tip_name);
+		    ROS_INFO_STREAM("  Tree has " << kdl_tree.getNrOfJoints() << " joints");
+		    ROS_INFO_STREAM("  Tree has " << kdl_tree.getNrOfSegments() << " segments");
+		    ROS_INFO_STREAM("  The segments are:");
+
+		    KDL::SegmentMap segment_map = kdl_tree.getSegments();
+		    KDL::SegmentMap::iterator it;
+
+		    for( it=segment_map.begin(); it != segment_map.end(); it++ )
+		      ROS_INFO_STREAM( "    " << (*it).first);
+		}
+		
+		ROS_INFO("KDL Chain has %d joints !!!", kdl_chain.getNrOfJoints());
+
+		// Parsing joint limits from urdf model along kdl chain
+		boost::shared_ptr<const urdf::Link> link = model.getLink(tip_name);	// A Link defined in a URDF structure
+		boost::shared_ptr<const urdf::Joint> joint;  // A Joint defined in a URDF structure
+		
+		// Resize joints limits arrays with the "KDL chain" number of joints
+		joint_limits.min.resize(kdl_chain.getNrOfJoints());
+		joint_limits.max.resize(kdl_chain.getNrOfJoints());
+		joint_limits.center.resize(kdl_chain.getNrOfJoints());
+		
+		int index;
+		
+		link = model.getLink(link->getParent()->name);
+		
+		for (int i = 0; i < kdl_chain.getNrOfJoints() && link; i++)
+		{
+		    joint = model.getJoint(link->parent_joint->name);
+ 
+		    ROS_INFO("Getting limits for joint: %s", joint->name.c_str());
+			
+		    index = kdl_chain.getNrOfJoints() - i - 1;
+
+		    joint_limits.min(index) = joint->limits->lower;
+		    joint_limits.max(index) = joint->limits->upper;
+		    joint_limits.center(index) = (joint_limits.min(index) + joint_limits.max(index))/2;
+
+		    ROS_INFO("-> min = %f, max = %f, center = %f", joint_limits.min(index), joint_limits.max(index),joint_limits.center(index));
+
+		    link = model.getLink(link->getParent()->name);
+		}
+		
+
+		return true;
+
+}
 
 
 void updatePoseOfAllMarkers(const ros::TimerEvent&)
@@ -170,6 +297,12 @@ void processJoint1Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    double yaw = tf::getYaw(feedback->pose.orientation);
 	    
 	    current_rotation[0] = feedback->pose.orientation;
+	    
+	    if (yaw < joint_limits.min(0))
+	      yaw = joint_limits.min(0);
+	      
+	    if (yaw > joint_limits.max(0))
+	      yaw = joint_limits.max(0);
 	
 	    std_msgs::Float32 cmd;
 	    
@@ -188,6 +321,12 @@ void processJoint2Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	double yaw = tf::getYaw(feedback->pose.orientation);
 	
 	current_rotation[1] = feedback->pose.orientation;
+	
+	if (yaw < joint_limits.min(1))
+	      yaw = joint_limits.min(1);
+	      
+	if (yaw > joint_limits.max(1))
+	      yaw = joint_limits.max(1);
 
 	std_msgs::Float32 cmd;
 	    
@@ -208,6 +347,12 @@ void processJoint3Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    
 	    current_rotation[2] = feedback->pose.orientation;
 	    
+	    if (yaw < joint_limits.min(2))
+	      yaw = joint_limits.min(2);
+	      
+	    if (yaw > joint_limits.max(2))
+	      yaw = joint_limits.max(2);
+	    
 	    std_msgs::Float32 cmd;
 	    
 	    cmd.data = yaw;
@@ -225,6 +370,12 @@ void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	    double yaw = tf::getYaw(feedback->pose.orientation);
 	    
 	    current_rotation[3] = feedback->pose.orientation;
+	    
+	    if (yaw < joint_limits.min(3))
+	      yaw = joint_limits.min(3);
+	      
+	    if (yaw > joint_limits.max(3))
+	      yaw = joint_limits.max(3);
 	
 	    std_msgs::Float32 cmd;
 	    
@@ -261,6 +412,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "mobile_marker_node");
   
   ros::NodeHandle nh;
+  
+  getJointsLimitsFromURDF(nh);
+  
   nh.param<double>("linear_scale", linear_scale, 0.1);
   nh.param<double>("angular_scale", angular_scale, 0.1);
   
