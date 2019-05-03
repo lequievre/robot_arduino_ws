@@ -6,6 +6,10 @@
  * 
  * rostopic pub -1 arduino/cmd_vel geometry_msgs/Twist  '{linear:  {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
  * rostopic pub -1 arduino/cmd_pos std_msgs/Float32MultiArray "{data:[0.0, 0.0, 0.0, 0.0]}"
+ * rostopic pub -1 arduino/cmd_pos_joint1 std_msgs/Float32 "{data: 0.0}"
+ * rostopic pub -1 arduino/cmd_pos_joint2 std_msgs/Float32 "{data: 0.0}"
+ * rostopic pub -1 arduino/cmd_pos_joint3 std_msgs/Float32 "{data: 0.0}"
+ * rostopic pub -1 arduino/cmd_pos_joint4 std_msgs/Float32 "{data: 0.0}"
  * rostopic echo arduino/joint_states
  * 
  */
@@ -16,6 +20,7 @@
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Float32.h>
 
 // WHEEL SYNC_READ_HANDLER(Only for Protocol 2.0)
 #define WHEEL_SYNC_READ_HANDLER_FOR_PRESENT_POSITION_VELOCITY_CURRENT 0
@@ -413,7 +418,47 @@ void commandArmPositionCallback(const std_msgs::Float32MultiArray &msg)
   
 }
 
+void commandArmPositionJoint1Callback(const std_msgs::Float32 &msg)
+{
+  int32_t dynamixel_position;
+
+  dynamixel_position = dxl_wb.convertRadian2Value(DXL_ID_ARM_JOINT1, msg.data);
+
+  dxl_wb.goalPosition(DXL_ID_ARM_JOINT1, dynamixel_position);
+}
+
+void commandArmPositionJoint2Callback(const std_msgs::Float32 &msg)
+{
+  int32_t dynamixel_position;
+
+  dynamixel_position = dxl_wb.convertRadian2Value(DXL_ID_ARM_JOINT2, msg.data);
+  
+  dxl_wb.goalPosition(DXL_ID_ARM_JOINT2, dynamixel_position);
+}
+
+void commandArmPositionJoint3Callback(const std_msgs::Float32 &msg)
+{
+  int32_t dynamixel_position;
+
+  dynamixel_position = dxl_wb.convertRadian2Value(DXL_ID_ARM_JOINT3, msg.data);
+
+  dxl_wb.goalPosition(DXL_ID_ARM_JOINT3, dynamixel_position);
+}
+
+void commandArmPositionJoint4Callback(const std_msgs::Float32 &msg)
+{
+  int32_t dynamixel_position;
+
+  dynamixel_position = dxl_wb.convertRadian2Value(DXL_ID_ARM_JOINT4, msg.data);
+
+  dxl_wb.goalPosition(DXL_ID_ARM_JOINT4, dynamixel_position);
+}
+
 ros::Subscriber<std_msgs::Float32MultiArray> cmd_arm_position_sub("arduino/cmd_pos", commandArmPositionCallback );
+ros::Subscriber<std_msgs::Float32> cmd_arm_joint1_position_sub("arduino/cmd_pos_joint1", commandArmPositionJoint1Callback);
+ros::Subscriber<std_msgs::Float32> cmd_arm_joint2_position_sub("arduino/cmd_pos_joint2", commandArmPositionJoint2Callback);
+ros::Subscriber<std_msgs::Float32> cmd_arm_joint3_position_sub("arduino/cmd_pos_joint3", commandArmPositionJoint3Callback);
+ros::Subscriber<std_msgs::Float32> cmd_arm_joint4_position_sub("arduino/cmd_pos_joint4", commandArmPositionJoint4Callback);
 
 
 bool initWorkbench(const std::string port_name, const uint32_t baud_rate)
@@ -696,6 +741,14 @@ void setup() {
   nh.subscribe(cmd_vel_sub);
   nh.spinOnce();
   nh.subscribe(cmd_arm_position_sub);
+  nh.spinOnce();
+  nh.subscribe(cmd_arm_joint1_position_sub);
+  nh.spinOnce();
+  nh.subscribe(cmd_arm_joint2_position_sub);
+  nh.spinOnce();
+  nh.subscribe(cmd_arm_joint3_position_sub);
+  nh.spinOnce();
+  nh.subscribe(cmd_arm_joint4_position_sub);
   nh.spinOnce();
 
   if (!initWorkbench(DEVICE_NAME,BAUDRATE)) return;
