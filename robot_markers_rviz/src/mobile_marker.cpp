@@ -306,108 +306,191 @@ void jointStateCallback(const sensor_msgs::JointStateConstPtr& msg)
 
 void processJoint1Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
-	    double yaw = tf::getYaw(feedback->pose.orientation);
-	    
-	    if (yaw < joint_limits.min(0))
-	      yaw = joint_limits.min(0);
-	    else
-	    {  
-			if (yaw > joint_limits.max(0))
-				yaw = joint_limits.max(0);
-			else
-				current_rotation[0] = feedback->pose.orientation;
-		}
+	    std::ostringstream s;
+		s << "Feedback from marker '" << feedback->marker_name << "' "
+		<< " / control '" << feedback->control_name << "'";
 	
-	    std_msgs::Float32 cmd;
-	    
-	    cmd.data = yaw;
-	    
-	    cmd_pub_joint1.publish(cmd); 
-	    
-	    //updatePoseOfAllMarkers();
-	   
-	   ROS_INFO(" joint1 = %f",yaw);
-	   ROS_INFO(" joint1 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
+		switch ( feedback->event_type )
+		{
+			case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
+			
+				// Get Yaw orientation value
+				double yaw = tf::getYaw(feedback->pose.orientation);
+				
+				// Take care about limits
+				if (yaw < joint_limits.min(0))
+					yaw = joint_limits.min(0);
+				else
+				{  
+					if (yaw > joint_limits.max(0))
+						yaw = joint_limits.max(0);
+					else
+						current_rotation[0] = feedback->pose.orientation;
+				}
+			
+				// Print debug informations
+				ROS_INFO_STREAM( s.str() << ": pose changed"
+				<< "\nyaw: " << yaw
+				<< "\nposition = "
+				<< feedback->pose.position.x
+				<< ", " << feedback->pose.position.y
+				<< ", " << feedback->pose.position.z
+				<< "\norientation = "
+				<< feedback->pose.orientation.w
+				<< ", " << feedback->pose.orientation.x
+				<< ", " << feedback->pose.orientation.y
+				<< ", " << feedback->pose.orientation.z
+				<< "\nframe: " << feedback->header.frame_id
+				<< " time: " << feedback->header.stamp.sec << " sec, "
+				<< feedback->header.stamp.nsec << " nsec");
+			
+				// Publish command to dynamixel motor by using a dedicated topic
+				std_msgs::Float32 cmd;
+				cmd.data = yaw;
+				cmd_pub_joint1.publish(cmd);
+	}
 }
 
 void processJoint2Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
-	double yaw = tf::getYaw(feedback->pose.orientation);
-
-	if (yaw < joint_limits.min(1))
-	      yaw = joint_limits.min(1);
-	else
-	{  
-		if (yaw > joint_limits.max(1))
-			yaw = joint_limits.max(1);
-		else
-			current_rotation[1] = feedback->pose.orientation;
+		std::ostringstream s;
+		s << "Feedback from marker '" << feedback->marker_name << "' "
+		<< " / control '" << feedback->control_name << "'";
+	
+		switch ( feedback->event_type )
+		{
+			case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
+			
+				// Get Yaw orientation value
+				double yaw = tf::getYaw(feedback->pose.orientation);
+				
+				// Take care about limits
+				if (yaw < joint_limits.min(1))
+					yaw = joint_limits.min(1);
+				else
+				{  
+					if (yaw > joint_limits.max(1))
+						yaw = joint_limits.max(1);
+					else
+						current_rotation[1] = feedback->pose.orientation;
+				}
+			
+				// Print debug informations
+				ROS_INFO_STREAM( s.str() << ": pose changed"
+				<< "\nyaw: " << yaw
+				<< "\nposition = "
+				<< feedback->pose.position.x
+				<< ", " << feedback->pose.position.y
+				<< ", " << feedback->pose.position.z
+				<< "\norientation = "
+				<< feedback->pose.orientation.w
+				<< ", " << feedback->pose.orientation.x
+				<< ", " << feedback->pose.orientation.y
+				<< ", " << feedback->pose.orientation.z
+				<< "\nframe: " << feedback->header.frame_id
+				<< " time: " << feedback->header.stamp.sec << " sec, "
+				<< feedback->header.stamp.nsec << " nsec");
+			
+				// Publish command to dynamixel motor by using a dedicated topic
+				std_msgs::Float32 cmd;
+				cmd.data = yaw;
+				cmd_pub_joint2.publish(cmd);
 	}
-	
-	std_msgs::Float32 cmd;
-	    
-	cmd.data = yaw;
-	
-	cmd_pub_joint2.publish(cmd); 
-	
-	//updatePoseOfAllMarkers();
-   
-	ROS_INFO(" joint2 = %f",yaw);
-	ROS_INFO(" joint2 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
-   
 }
 
 void processJoint3Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
-	    double yaw = tf::getYaw(feedback->pose.orientation);
-	     
-	    if (yaw < joint_limits.min(2))
-	      yaw = joint_limits.min(2);
-	    else
-	    {  
-			if (yaw > joint_limits.max(2))
-				yaw = joint_limits.max(2);
-			else
-				current_rotation[2] = feedback->pose.orientation;
-		}
+		std::ostringstream s;
+		s << "Feedback from marker '" << feedback->marker_name << "' "
+		<< " / control '" << feedback->control_name << "'";
 	
-	    std_msgs::Float32 cmd;
-	    
-	    cmd.data = yaw;
-	    
-	    cmd_pub_joint3.publish(cmd); 
-	    
-	    //updatePoseOfAllMarkers();
+		switch ( feedback->event_type )
+		{
+			case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
+			
+				// Get Yaw orientation value
+				double yaw = tf::getYaw(feedback->pose.orientation);
+				
+				// Take care about limits
+				if (yaw < joint_limits.min(2))
+					yaw = joint_limits.min(2);
+				else
+				{  
+					if (yaw > joint_limits.max(2))
+						yaw = joint_limits.max(2);
+					else
+						current_rotation[2] = feedback->pose.orientation;
+				}
+			
+				// Print debug informations
+				ROS_INFO_STREAM( s.str() << ": pose changed"
+				<< "\nyaw: " << yaw
+				<< "\nposition = "
+				<< feedback->pose.position.x
+				<< ", " << feedback->pose.position.y
+				<< ", " << feedback->pose.position.z
+				<< "\norientation = "
+				<< feedback->pose.orientation.w
+				<< ", " << feedback->pose.orientation.x
+				<< ", " << feedback->pose.orientation.y
+				<< ", " << feedback->pose.orientation.z
+				<< "\nframe: " << feedback->header.frame_id
+				<< " time: " << feedback->header.stamp.sec << " sec, "
+				<< feedback->header.stamp.nsec << " nsec");
+			
+				// Publish command to dynamixel motor by using a dedicated topic
+				std_msgs::Float32 cmd;
+				cmd.data = yaw;
+				cmd_pub_joint3.publish(cmd);
+	}
 	   
-	    ROS_INFO(" joint3 = %f",yaw);
-	    ROS_INFO(" joint3 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
 }
 
 void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
-	    double yaw = tf::getYaw(feedback->pose.orientation);
-	    
-	    if (yaw < joint_limits.min(3))
-	      yaw = joint_limits.min(3);
-	    else
-	    {  
-			if (yaw > joint_limits.max(3))
-				yaw = joint_limits.max(3);
-			else
-				current_rotation[3] = feedback->pose.orientation;
-		}
+		std::ostringstream s;
+		s << "Feedback from marker '" << feedback->marker_name << "' "
+		<< " / control '" << feedback->control_name << "'";
 	
-	
-	    std_msgs::Float32 cmd;
-	    
-	    cmd.data = yaw;
-	    
-	    cmd_pub_joint4.publish(cmd); 
-	    
-	    //updatePoseOfAllMarkers();
-	   
-	    ROS_INFO("%s, joint4 = %f",feedback->marker_name.c_str(), yaw);
-	    ROS_INFO(" joint4 position x=%f, y=%f, z=%f",feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
+		switch ( feedback->event_type )
+		{
+			case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
+			
+				// Get Yaw orientation value
+				double yaw = tf::getYaw(feedback->pose.orientation);
+				
+				// Take care about limits
+				if (yaw < joint_limits.min(3))
+					yaw = joint_limits.min(3);
+				else
+				{  
+					if (yaw > joint_limits.max(3))
+						yaw = joint_limits.max(3);
+					else
+						current_rotation[3] = feedback->pose.orientation;
+				}
+			
+				// Print debug informations
+				ROS_INFO_STREAM( s.str() << ": pose changed"
+				<< "\nyaw: " << yaw
+				<< "\nposition = "
+				<< feedback->pose.position.x
+				<< ", " << feedback->pose.position.y
+				<< ", " << feedback->pose.position.z
+				<< "\norientation = "
+				<< feedback->pose.orientation.w
+				<< ", " << feedback->pose.orientation.x
+				<< ", " << feedback->pose.orientation.y
+				<< ", " << feedback->pose.orientation.z
+				<< "\nframe: " << feedback->header.frame_id
+				<< " time: " << feedback->header.stamp.sec << " sec, "
+				<< feedback->header.stamp.nsec << " nsec");
+			
+				// Publish command to dynamixel motor by using a dedicated topic
+				std_msgs::Float32 cmd;
+				cmd.data = yaw;
+				cmd_pub_joint4.publish(cmd);
+	}
 }
 
 
@@ -495,7 +578,6 @@ int main(int argc, char** argv)
   // tell the server to call processFeedback() when feedback arrives for it
   server->insert(int_marker, &processFeedback);
   
-
   // Create Joint 1 Control
   visualization_msgs::InteractiveMarker int_marker_joint1;
   int_marker_joint1.header.frame_id = "base_link";
@@ -659,8 +741,6 @@ int main(int argc, char** argv)
 
   int_marker_joint4.controls.push_back(controlJoint4);
   server->insert(int_marker_joint4, &processJoint4Feedback);
-  
-  
   
   // Menu insert
   menu_handler.insert("Stop Robot",&processMenuStopCb);
