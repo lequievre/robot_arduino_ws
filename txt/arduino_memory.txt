@@ -358,6 +358,85 @@ https://github.com/ros-visualization/visualization_tutorials
 http://wiki.ros.org/rviz/Tutorials/
 
 
+Install Ubuntu mate 16.04 on raspberry pi model B :
+=================================================
+
+cf :
+http://emanual.robotis.com/docs/en/platform/turtlebot3/sbc_setup/#sbc-setup
+https://ubuntu-mate.org/raspberry-pi/
+
+ubuntu mate 18.04 is now recommended for raspberry pi model b+.
+But for ubuntu 16.04 and raspberry pi 3 B+ (it is recommended to install raspbian version).
+
+For raspberry pi 3 model B, we can install ubuntu mate 16.04.
+
+We use a raspberry pi 3 model 3 (2015) based on a 64 bits architecture (Quadcore ARM Cortex-A53, 64Bit).
+cf: http://wiki.seeedstudio.com/Raspberry_Pi_3_Model_B/
+
+ARM Cortex-A53 implementing the ARMv8-A 64-bit instruction set.
+cf : https://en.wikipedia.org/wiki/ARM_Cortex-A53
+
+
+test 1 :
+download ubuntu mate 16.04  raspberry pi 3
+http://emanual.robotis.com/docs/en/platform/turtlebot3/raspberry_pi_3_setup/#install-linux-ubuntu-mate
+Click on "Direct download link"
+
+Applications/Accessoires/Disques
+
+
+sudo apt-get update
+sudo apt-get upgrade
+
+wget https://raw.githubusercontent.com/ROBOTIS-GIT/robotis_tools/master/install_ros_kinetic.sh && chmod 755 ./install_ros_kinetic.sh && bash ./install_ros_kinetic.sh
+
+
+sudo apt-get install synaptic
+sudo apt-get install git
+
+sudo apt-get install gnome-session-flashback
+
+sudo apt-get install openssh-server
+#Activate service ssh
+sudo systemctl enable ssh.service
+#Verify sate of ssh service
+sudo systemctl status ssh.service
+
+-> Disable wifi power safe : replace value 3 to 0
+sudo nano /etc/NetworkManager/conf.d/default-wifi-powersave-on.conf
+
+sudo apt-get install ros-kinetic-rosserial-server
+
+roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+
+rostopic echo /arduino/joint_states
+
+rostopic pub -1 /arduino/cmd_pos_joint1 std_msgs/Float32 "{data: 0.1}"
+
+# change USB /dev/ttyACM0 baudrate value
+sudo stty -F /dev/ttyACM0 115200
+
+#If permission denied 
+sudo chmod 777 /dev/ttyACM0
+
+(https://www.framboise314.fr/le-port-serie-du-raspberry-pi-3-pas-simple/#Le_port_serie_du_Raspberry_Pi_3_la_cata)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
