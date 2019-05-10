@@ -1,0 +1,113 @@
+Raspberry pi model B Architecture :
+==================================
+
+https://www.raspberrypi.org/products/raspberry-pi-3-model-b/
+
+-> based on a Quad Core 1.2GHz Broadcom BCM2837 64bit CPU.
+
+What is a BCM2837 ?
+------------------
+https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md
+
+-> This is the Broadcom chip used in the Raspberry Pi 3, and in later models of the Raspberry Pi 2. The underlying architecture of the BCM2837 is identical to the BCM2836. The only significant difference is the replacement of the ARMv7 quad core cluster with a quad-core ARM Cortex A53 (ARMv8) cluster.
+
+So we conclude that : rasberry pi 3 model b used an quad-core ARM Cortex A53 (ARMv8).
+
+What id the core with bit of Arm Cortex A53 (ARMv8) ?
+----------------------------------------------------
+
+https://en.wikipedia.org/wiki/ARM_Cortex-A53
+
+-> The ARM Cortex-A53 is one of the first two microarchitectures implementing the ARMv8-A 64-bit instruction set designed by ARM Holdings' Cambridge design centre.
+
+https://en.wikipedia.org/wiki/ARM_architecture#Cores
+
+->  ARMv8-A can use 64/32 core bit width.
+
+What is the difference between armhf and arm64 ?
+-----------------------------------------------
+
+The ARM hard-float (armhf) port supports newer, more powerful 32-bit devices using version 7 of the ARM architecture specification.
+
+The 64-bit ARM (arm64) port supports the latest 64-bit ARM-powered devices. (armv8)
+
+What is the targeted linux version for Ros Kinetic Kame ?
+---------------------------------------------------------
+
+http://wiki.ros.org/kinetic
+
+-> ROS Kinetic Kame is primarily targeted at the Ubuntu 16.04 (Xenial) release.
+
+
+On which system we can install Unbuntu 16.04 (Xenial) release ?
+--------------------------------------------------------------
+
+-> There are binary packages available for Ubuntu distributions Wily and Xenial for x86, x86_64, and armhf architectures. 
+
+No arm64 version available !!
+
+
+Why an Unbuntu Mate version for rpi3 ?
+-------------------------------------
+
+-> The Classic ubuntu desktop environment is based on Unity.
+-> The Mate ubuntu desktop environment is based on a fork of GNOME (2.x). (a lighter graphical environment).
+
+
+Which version of Ubuntu Mate is developped for arm64 (armv8) ?
+-------------------------------------------------------------
+
+https://ubuntu-mate.org/raspberry-pi/
+
+-> Ubuntu MATE 18.04.2 is available for Raspberry Pi Model B 2, 3 and 3+ with separate images for armhf (ARMv7 32-bit) and arm64 (ARMv8 64-bit). 
+
+
+What is a raspbian system ?
+--------------------------
+
+https://en.wikipedia.org/wiki/Raspbian
+
+-> Raspbian is a Debian-based computer operating system for Raspberry Pi.
+-> There are several versions of Raspbian including Raspbian Stretch and Raspbian Jessie.
+
+-> debian 8 = Jessie  (version 8.11, 23 june 2018).  -> only armhf  = raspbian Jessie  = ubuntu 14.04
+-> debian 9 = Stretch  (version 9.9, 27 april 2019). -> armhf and arm64  = raspbian Stretch = ubuntu 16.04
+
+-> Raspbian uses PIXEL, Pi Improved X-Window Environment, Lightweight as its main desktop environment as of the latest update.
+
+
+
+
+===========================================================================
+==========================================================================
+
+raspberry pi 3 model b+
+-----------------------
+-> Broadcom BCM2837B0, Cortex-A53 64-bit SoC @ 1.4 GHz.
+-> Cortex-A53 64-bit.
+https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837b0/README.md
+https://static.raspberrypi.org/files/product-briefs/Raspberry-Pi-Model-Bplus-Product-Brief.pdf
+
+-> Models comparison
+http://socialcompare.com/fr/comparison/raspberrypi-models-comparison
+
+Arm Cortex A53 = ARMv8 = 64/32 core bit width -> Used with model B and model B+.
+
+https://ubuntu-mate.org/raspberry-pi/
+-> Ubuntu MATE 18.04.2 is available for Raspberry Pi Model B 2, 3 and 3+ with separate images for armhf (ARMv7 32-bit) and arm64 (ARMv8 64-bit). 
+
+-> There is no 64 bits version of raspbian ?
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+

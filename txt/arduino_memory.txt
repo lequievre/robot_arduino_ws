@@ -423,6 +423,23 @@ sudo chmod 777 /dev/ttyACM0
 
 
 
+-> enable ssh on rpi3
+
+sudo raspi-config
+(faire un update avant)
+puis
+3-Interfacing Options -> P2 SSH -> Yes (would you like ssh server to be enabled)
+
+
+rp3 ros config
+==============
+
+export ROS_MASTER_URI=http://192.168.0.1:11311
+export ROS_HOSTNAME=192.168.0.36
+
+
+
+
 
 
 
