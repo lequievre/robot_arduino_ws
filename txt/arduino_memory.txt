@@ -435,39 +435,86 @@ rp3 ros config
 ==============
 
 export ROS_MASTER_URI=http://192.168.0.1:11311
-export ROS_HOSTNAME=192.168.0.36
+export ROS_HOSTNAME=192.168.0.10
 
 
 
+Ubuntu Mate 16.04 api3 wifi config :
+===================================
+
+-> create a file named (for example wlan0) in the directory /etc/network/interfaces.d
+This file contains :
+auto wlan0
+iface wlan0 inet static
+  wpa-ssid "wifininja"
+  wpa-psk "xxxxxx" #the pwd
+  address 192.168.0.10
+  netmask 255.255.255.0
+  gateway 192.168.0.1
+
+-> Disable the service of NetworkManager :
+sudo systemctl disable NetworkManager.service
+
+-> Is It necessary ?
+sudo service network-manager stop && sudo service networking start
+sudo update-rc.d network-manager remove
+sudo update-rc.d networking defaults
 
 
+Teleoperate with wifi rpi3 board
+=================================
+
+1-> "Switch On" the power of rpi3.
+2-> Connect OpenCM9.04 to USB port of rpi3 and switch on the power of OpenCM9.04.
+3-> launch roscore in a terminal window on the laptop
+4-> set all the rights for the /dev/ttyACM0 on rpi3
+sudo chmod 777 /dev/ttyACM0
+5-> launch rosserial communication on rpi3
+roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+6-> launch rviz markers application
+cd ~/Projets
+cd catkin_arduino_robot_ws
+source devel/setup.bash
+roslaunch robot_description robot_rviz_interactive_marker.launch
 
 
+Remarks :
+--------
+Each Terminal window has to set to ROS network variables :
+ROS_MASTER_URI and ROS_HOSTNAME
 
+ROS_MASTER_URI is to define the URI where to find roscore already launched.
+ROS_HOSTNAME is the ip of the current system.
 
+for rpi3 -> 
+export ROS_MASTER_URI=http://192.168.0.1:11311
+export ROS_HOSTNAME=192.168.0.10
 
+for laptop ->
+export ROS_MASTER_URI=http://192.168.0.1:11311
+export ROS_HOSTNAME=192.168.0.1
 
+On the laptop :
+Terminal 1
+ssh pi@192.168.0.10
+sudo chmod 777 /dev/ttyACM0
+roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0 _baud:=115200
+(in the .bashrc there is -> 
+export ROS_MASTER_URI=http://192.168.0.1:11311
+export ROS_HOSTNAME=192.168.0.10)
 
+Terminal 2
+export ROS_MASTER_URI=http://192.168.0.1:11311
+export ROS_HOSTNAME=192.168.0.1
+roscore
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Terminal 3
+export ROS_MASTER_URI=http://192.168.0.1:11311
+export ROS_HOSTNAME=192.168.0.1
+cd ~/Projets
+cd catkin_arduino_robot_ws
+source devel/setup.bash
+roslaunch robot_description robot_rviz_interactive_marker.launch
 
 
