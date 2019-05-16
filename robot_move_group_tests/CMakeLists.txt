@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   roscpp
   std_msgs
+  rviz_visual_tools
+  moveit_visual_tools
 )
 
 ## System dependencies are found with CMake's conventions
@@ -141,6 +143,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(test_random_node src/test_random.cpp)
 add_executable(test_custom_node src/test_custom.cpp)
+add_executable(test_tutorial_node src/move_group_interface_tutorial.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -160,6 +163,11 @@ target_link_libraries(test_random_node
 target_link_libraries(test_custom_node
    ${catkin_LIBRARIES}
  )
+
+target_link_libraries(test_tutorial_node
+   ${catkin_LIBRARIES}
+ )
+
 
 #############
 ## Install ##

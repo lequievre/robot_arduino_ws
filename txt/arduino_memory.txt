@@ -522,7 +522,17 @@ move_group c++ node tests
 
 0-> roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
 1-> roslaunch robot_hw robotHW.launch
-2-> roslaunch robot_moveit real.launch
+2-> roslaunch robot_moveit real_move_group_interface.launch
 3-> start joint_trajectory_controller
  rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_trajectory_controller'], stop_controllers: [], strictness: 2}"
 4-> rosrun robot_move_group_tests test_random_node
+rosrun robot_move_group_tests test_tutorial_node
+
+We got a problem with the joint_state_publisher (when real arm moved nothing append in rviz).
+-> Modify the joint publisher part (set correctly the "source_list" paramter) of the file real_move_group_interface.launch
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="$(arg use_gui)"/>
+	<rosparam param="source_list">[/arduino/joint_states]</rosparam>
+  </node>
+  
+
