@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
 
   // Change Default Planner !
-  move_group.setPlannerId("RRTkConfigDefault");
+  move_group.setPlannerId("RRTConnect");
 
   // We will use the :planning_scene_interface:`PlanningSceneInterface`
   // class to add and remove collision objects in our "virtual world" scene
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 
   // Raw pointers are frequently used to refer to the planning group for improved performance.
   const robot_state::JointModelGroup* joint_model_group =
-      move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
+  move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
 
   // Visualization
   // ^^^^^^^^^^^^^
@@ -83,7 +83,7 @@ int main(int argc, char** argv)
   // The package MoveItVisualTools provides many capabilties for visualizing objects, robots,
   // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script
   namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools("base_link");
+  moveit_visual_tools::MoveItVisualTools visual_tools("base_link","/rviz_visual_tools");
   visual_tools.deleteAllMarkers();
 
   // Remote control is an introspection tool that allows users to step through a high level script
@@ -119,10 +119,10 @@ int main(int argc, char** argv)
 
   visual_tools.prompt("Press 'next' to plan and move to the initial Position !");
 
-  joint_group_positions[0] = -1.0;  // radians
+  //joint_group_positions[0] = 0.0;  // radians
   joint_group_positions[1] = 0.5;  // radians
   joint_group_positions[2] = -0.5;  // radians
-  joint_group_positions[3] = 0.5;  // radians
+  //joint_group_positions[3] = 0.5;  // radians
   move_group.setJointValueTarget(joint_group_positions);
 
   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
@@ -138,10 +138,18 @@ int main(int argc, char** argv)
   // end-effector.
   geometry_msgs::Pose target_pose1;
   target_pose1.orientation.w = 1.0;
-  target_pose1.position.x = 0.0;
+  //target_pose1.position.x = 0.05;
+  //target_pose1.position.y = 0.05;
+  //target_pose1.position.z = 0.50;
+  
+  target_pose1.position.x = 0.05;
   target_pose1.position.y = 0.0;
   target_pose1.position.z = 0.45;
   move_group.setPoseTarget(target_pose1);
+  
+  //move_group.setPlanningTime(10.0);
+  //move_group.setGoalOrientationTolerance(0.05);
+  //move_group.setGoalPositionTolerance(0.05);
 
   // Now, we call the planner to compute the plan and visualize it.
   // Note that we are just planning, not asking move_group
@@ -217,8 +225,62 @@ int main(int argc, char** argv)
   visual_tools.prompt("Press 'next' to move to the Space Goal !");
 
   move_group.execute(my_plan);
+  
+  
+  visual_tools.prompt("Press 'next' to move to Cartesian Path !");
+  
+  // Cartesian Paths
+  // ^^^^^^^^^^^^^^^
+  // You can plan a Cartesian path directly by specifying a list of waypoints
+  // for the end-effector to go through. Note that we are starting
+  // from the new start state above.  The initial pose (start state) does not
+  // need to be added to the waypoint list but adding it can help with visualizations
+  geometry_msgs::Pose target_pose3 = move_group.getCurrentPose().pose;
 
+  std::vector<geometry_msgs::Pose> waypoints;
+  waypoints.push_back(target_pose3);
 
+  target_pose3.position.z -= 0.05;
+  waypoints.push_back(target_pose3);  // down
+
+  target_pose3.position.y -= 0.05;
+  waypoints.push_back(target_pose3);  // right
+
+ /* target_pose3.position.z += 0.2;
+  target_pose3.position.y += 0.2;
+  target_pose3.position.x -= 0.2;
+  waypoints.push_back(target_pose3);  // up and left*/
+
+  // Cartesian motions are frequently needed to be slower for actions such as approach and retreat
+  // grasp motions. Here we demonstrate how to reduce the speed of the robot arm via a scaling factor
+  // of the maxiumum speed of each joint. Note this is not the speed of the end effector point.
+  move_group.setMaxVelocityScalingFactor(0.1);
+
+  // We want the Cartesian path to be interpolated at a resolution of 1 cm
+  // which is why we will specify 0.01 as the max step in Cartesian
+  // translation.  We will specify the jump threshold as 0.0, effectively disabling it.
+  // Warning - disabling the jump threshold while operating real hardware can cause
+  // large unpredictable motions of redundant joints and could be a safety issue
+  move_group.setPlanningTime(20.0);
+  moveit_msgs::RobotTrajectory trajectory;
+  const double jump_threshold = 0.0;
+  const double eef_step = 0.001;
+  double fraction = move_group.computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+  ROS_INFO_NAMED("tutorial", "Visualizing plan 4 (Cartesian path) (%.2f%% acheived)", fraction * 100.0);
+
+  // Visualize the plan in RViz
+  visual_tools.deleteAllMarkers();
+  visual_tools.publishText(text_pose, "Joint Space Goal", rvt::WHITE, rvt::XLARGE);
+  visual_tools.publishPath(waypoints, rvt::LIME_GREEN, rvt::SMALL);
+  for (std::size_t i = 0; i < waypoints.size(); ++i)
+    visual_tools.publishAxisLabeled(waypoints[i], "pt" + std::to_string(i), rvt::SMALL);
+  visual_tools.trigger();
+  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
+
+  
+  my_plan.trajectory_ = trajectory;
+  move_group.execute(my_plan);
+  
   visual_tools.prompt("Press 'next'  to finish !");
 
   // CODE INSERT HERE
