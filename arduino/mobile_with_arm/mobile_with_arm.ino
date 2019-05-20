@@ -10,6 +10,7 @@
  * rostopic pub -1 arduino/cmd_pos_joint2 std_msgs/Float32 "{data: 0.0}"
  * rostopic pub -1 arduino/cmd_pos_joint3 std_msgs/Float32 "{data: 0.0}"
  * rostopic pub -1 arduino/cmd_pos_joint4 std_msgs/Float32 "{data: 0.0}"
+ * rostopic pub -1 arduino/cmd_pos_joint5 std_msgs/Float32 "{data: 0.0}"
  * rostopic echo arduino/joint_states
  * 
  */
@@ -64,6 +65,9 @@
 #define DXL_ID_ARM_JOINT4    7
 #define NB_JOINT_ARM         4
 
+#define DXL_ID_GRIPPER_JOINT    8  // ID of Gripper Joint !
+#define NB_JOINT_GRIPPER        1
+
 #define CURRENT_UNIT          3.36f   //  3.36[mA]
 #define RPM_MX_64_2           0.229   // 0.229 rpm
 #define WHEEL_RADIUS          0.047  // 4.7 cm
@@ -105,10 +109,10 @@ int32_t arm_raw_velocity[4] = {0, 0, 0, 0};
 //float arm_velocity[4] = { 0.0, 0.0, 0.0, 0.0 };
 //char *arm_names[4] = {"joint_1", "joint_2", "joint_3", "joint_4" };
 
-float joint_position[NB_JOINT_WHEEL+NB_JOINT_ARM] = { 0.0 };
-float joint_current[NB_JOINT_WHEEL+NB_JOINT_ARM] = { 0.0 };
-float joint_velocity[NB_JOINT_WHEEL+NB_JOINT_ARM] = { 0.0 };
-char *joint_names[NB_JOINT_WHEEL+NB_JOINT_ARM] = { "wheel_right", "wheel_left", "joint1", "joint2", "joint3", "joint4" };
+float joint_position[NB_JOINT_WHEEL+NB_JOINT_ARM+NB_JOINT_GRIPPER] = { 0.0 };
+float joint_current[NB_JOINT_WHEEL+NB_JOINT_ARM+NB_JOINT_GRIPPER] = { 0.0 };
+float joint_velocity[NB_JOINT_WHEEL+NB_JOINT_ARM+NB_JOINT_GRIPPER] = { 0.0 };
+char *joint_names[NB_JOINT_WHEEL+NB_JOINT_ARM+NB_JOINT_GRIPPER] = { "wheel_right", "wheel_left", "joint1", "joint2", "joint3", "joint4", "joint5" };
 
 bool initWheelSyncWrite(void)
 {
@@ -321,6 +325,25 @@ bool readArmSyncDatas()
 
 }
 
+
+void readGripperDatas()
+{
+   const char *log;
+   bool result = false;
+   
+   int32_t gripper_raw_position = 0, gripper_raw_velocity = 0, gripper_raw_current = 0;
+
+   result = dxl_wb.itemRead(DXL_ID_GRIPPER_JOINT, "Present_Position", &gripper_raw_position, &log);
+   
+   result = dxl_wb.itemRead(DXL_ID_GRIPPER_JOINT, "Present_Velocity", &gripper_raw_velocity, &log);
+
+   result = dxl_wb.itemRead(DXL_ID_GRIPPER_JOINT, "Present_Current", &gripper_raw_current, &log);
+
+   joint_current[NB_JOINT_WHEEL+NB_JOINT_ARM] = gripper_raw_current * CURRENT_UNIT;
+   joint_position[NB_JOINT_WHEEL+NB_JOINT_ARM] = fmod(dxl_wb.convertValue2Radian(DXL_ID_GRIPPER_JOINT, gripper_raw_position),2.0*M_PI);
+   joint_velocity[NB_JOINT_WHEEL+NB_JOINT_ARM] = dxl_wb.convertValue2Velocity(DXL_ID_GRIPPER_JOINT, gripper_raw_velocity); 
+}
+
 void commandVelocityCallback(const geometry_msgs::Twist &msg)
 {
 
@@ -454,12 +477,21 @@ void commandArmPositionJoint4Callback(const std_msgs::Float32 &msg)
   dxl_wb.goalPosition(DXL_ID_ARM_JOINT4, dynamixel_position);
 }
 
+void commandArmPositionJoint5Callback(const std_msgs::Float32 &msg)
+{
+  int32_t dynamixel_position;
+
+  dynamixel_position = dxl_wb.convertRadian2Value(DXL_ID_GRIPPER_JOINT, msg.data);
+
+  dxl_wb.goalPosition(DXL_ID_GRIPPER_JOINT, dynamixel_position);
+}
+
 ros::Subscriber<std_msgs::Float32MultiArray> cmd_arm_position_sub("arduino/cmd_pos", commandArmPositionCallback );
 ros::Subscriber<std_msgs::Float32> cmd_arm_joint1_position_sub("arduino/cmd_pos_joint1", commandArmPositionJoint1Callback);
 ros::Subscriber<std_msgs::Float32> cmd_arm_joint2_position_sub("arduino/cmd_pos_joint2", commandArmPositionJoint2Callback);
 ros::Subscriber<std_msgs::Float32> cmd_arm_joint3_position_sub("arduino/cmd_pos_joint3", commandArmPositionJoint3Callback);
 ros::Subscriber<std_msgs::Float32> cmd_arm_joint4_position_sub("arduino/cmd_pos_joint4", commandArmPositionJoint4Callback);
-
+ros::Subscriber<std_msgs::Float32> cmd_arm_joint5_position_sub("arduino/cmd_pos_joint5", commandArmPositionJoint5Callback);
 
 bool initWorkbench(const std::string port_name, const uint32_t baud_rate)
 {
@@ -494,6 +526,34 @@ void getDynamixelsArmInfo()
   map_id_arm_dynamixels["arm_joint_2"] = DXL_ID_ARM_JOINT2;
   map_id_arm_dynamixels["arm_joint_3"] = DXL_ID_ARM_JOINT3;
   map_id_arm_dynamixels["arm_joint_4"] = DXL_ID_ARM_JOINT4;
+}
+
+bool loadGripperDynamixels(void)
+{
+  bool result = false;
+  const char* log;
+  uint16_t model_number = 0;
+
+  result = dxl_wb.ping((uint8_t)DXL_ID_GRIPPER_JOINT, &model_number, &log);
+  if (result == false)
+  {
+    Serial.println(log);
+    Serial.println("Failed to ping gripper joint !");
+    Serial.print("ID : ");
+    Serial.println((uint8_t)DXL_ID_GRIPPER_JOINT);
+    return false;
+  }
+  else
+  {
+    Serial.println("Succeeded to ping gripper joint !");
+    Serial.print("id : ");
+    Serial.println((uint8_t)DXL_ID_GRIPPER_JOINT);
+    Serial.print("model_number : ");
+    Serial.println(model_number);
+    Serial.print("model name : ");
+    Serial.println(dxl_wb.getModelName((uint8_t)DXL_ID_GRIPPER_JOINT));
+  }
+  
 }
 
 bool loadWheelDynamixels(void)
@@ -571,6 +631,36 @@ bool loadArmDynamixels(void)
     it++;
   }
   
+  return true;
+}
+
+bool initGripperDynamixels(void)
+{
+  bool result = false;
+  const char* log;
+  uint16_t model_number = 0;
+
+  result = dxl_wb.jointMode((uint8_t)DXL_ID_GRIPPER_JOINT, 100, 100, &log);
+
+  if (result == false)
+  {
+    Serial.println(log);
+    Serial.print("Failed to set the Joint Mode for Gripper Joint !");
+    Serial.print("ID : ");
+    Serial.println(DXL_ID_GRIPPER_JOINT);
+    return false;
+  }
+  else
+  {
+    Serial.println("Succeeded  to set the Joint Mode for Gripper Joint !");
+    Serial.print("id : ");
+    Serial.println(DXL_ID_GRIPPER_JOINT);
+    Serial.print("model_number : ");
+    Serial.println(model_number);
+    Serial.print("model name : ");
+    Serial.println(dxl_wb.getModelName(DXL_ID_GRIPPER_JOINT));
+  }
+
   return true;
 }
 
@@ -750,6 +840,8 @@ void setup() {
   nh.spinOnce();
   nh.subscribe(cmd_arm_joint4_position_sub);
   nh.spinOnce();
+  nh.subscribe(cmd_arm_joint5_position_sub);
+  nh.spinOnce();
 
   if (!initWorkbench(DEVICE_NAME,BAUDRATE)) return;
 
@@ -799,11 +891,20 @@ void setup() {
 
   nh.spinOnce();
 
+  // Gripper part !
+  if (!loadGripperDynamixels()) return;
+
+  nh.spinOnce();
+  
+  initGripperDynamixels();
+
+  nh.spinOnce();
+
   joint_states_msg.header.frame_id = "arduino_robot";
-  joint_states_msg.velocity_length = 6;
-  joint_states_msg.position_length = 6;
-  joint_states_msg.effort_length = 6;
-  joint_states_msg.name_length = 6;
+  joint_states_msg.velocity_length = 7;
+  joint_states_msg.position_length = 7;
+  joint_states_msg.effort_length = 7;
+  joint_states_msg.name_length = 7;
   joint_states_msg.name = joint_names;
   joint_states_msg.position = joint_position;
   joint_states_msg.velocity = joint_velocity;
@@ -822,6 +923,10 @@ void loop() {
   nh.spinOnce();
   
   readArmSyncDatas();
+
+  nh.spinOnce();
+
+  readGripperDatas();
 
   nh.spinOnce();
   
