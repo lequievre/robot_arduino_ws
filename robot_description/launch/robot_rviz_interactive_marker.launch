@@ -11,7 +11,7 @@
   <param name="angular_scale" value="$(arg angular_scale)" />
 
   <param name="robot_description"
-         command="$(find xacro)/xacro --inorder '$(find robot_description)/model/robot.urdf.xacro'"/>
+         command="$(find xacro)/xacro --inorder '$(find robot_description)/model/robot_with_gripper.urdf.xacro'"/>
 
   <!-- Send joint values -->
   <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher">

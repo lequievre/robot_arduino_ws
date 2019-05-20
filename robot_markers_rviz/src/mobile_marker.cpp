@@ -50,12 +50,12 @@
 #include <kdl/jntarrayacc.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
-#define NB_JOINTS 4
+#define NB_JOINTS 5
 
 boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
 
 ros::Publisher 	vel_pub;
-ros::Publisher 	cmd_pub, cmd_pub_joint1, cmd_pub_joint2, cmd_pub_joint3, cmd_pub_joint4;
+ros::Publisher 	cmd_pub, cmd_pub_joint1, cmd_pub_joint2, cmd_pub_joint3, cmd_pub_joint4, cmd_pub_joint5;
 ros::Subscriber joint_states_sub;
 
 double linear_scale;
@@ -83,7 +83,7 @@ bool getJointsLimitsFromURDF(ros::NodeHandle& nh)
 		std::string robot_description, root_name, tip_name;
 		
 		root_name = "link_1";
-		tip_name = "link_grinder";
+		tip_name = "link_gripper_left";
 
 		if (!ros::param::search(nh.getNamespace(),"robot_description", robot_description))
 		{
@@ -168,7 +168,7 @@ bool getJointsLimitsFromURDF(ros::NodeHandle& nh)
 		
 		int index;
 		
-		link = model.getLink(link->getParent()->name);
+		//link = model.getLink(link->getParent()->name);
 		
 		for (int i = 0; i < kdl_chain.getNrOfJoints() && link; i++)
 		{
@@ -249,7 +249,7 @@ void updatePoseOfAllMarkers(const ros::TimerEvent&)
 	   {
 		  try{
 		  
-				listener->lookupTransform("base_link", "endeffector",ros::Time(0), transform[3]);
+				listener->lookupTransform("base_link", "link_5",ros::Time(0), transform[3]);
 				get_transform = true;                            
 										 
 										 }
@@ -493,6 +493,52 @@ void processJoint4Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 	}
 }
 
+void processJoint5Feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
+{
+		std::ostringstream s;
+		s << "Feedback from marker '" << feedback->marker_name << "' "
+		<< " / control '" << feedback->control_name << "'";
+	
+		switch ( feedback->event_type )
+		{
+			case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
+			
+				// Get Yaw orientation value
+				double yaw = tf::getYaw(feedback->pose.orientation);
+				
+				// Take care about limits
+				if (yaw < joint_limits.min(4))
+					yaw = joint_limits.min(4);
+				else
+				{  
+					if (yaw > joint_limits.max(4))
+						yaw = joint_limits.max(4);
+					else
+						current_rotation[4] = feedback->pose.orientation;
+				}
+			
+				// Print debug informations
+				ROS_INFO_STREAM( s.str() << ": pose changed"
+				<< "\nyaw: " << yaw
+				<< "\nposition = "
+				<< feedback->pose.position.x
+				<< ", " << feedback->pose.position.y
+				<< ", " << feedback->pose.position.z
+				<< "\norientation = "
+				<< feedback->pose.orientation.w
+				<< ", " << feedback->pose.orientation.x
+				<< ", " << feedback->pose.orientation.y
+				<< ", " << feedback->pose.orientation.z
+				<< "\nframe: " << feedback->header.frame_id
+				<< " time: " << feedback->header.stamp.sec << " sec, "
+				<< feedback->header.stamp.nsec << " nsec");
+			
+				// Publish command to dynamixel motor by using a dedicated topic
+				std_msgs::Float32 cmd;
+				cmd.data = yaw;
+				cmd_pub_joint5.publish(cmd);
+	}
+}
 
 void processFeedback(
     const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -530,6 +576,7 @@ int main(int argc, char** argv)
   cmd_pub_joint2 = nh.advertise<std_msgs::Float32>("/arduino/cmd_pos_joint2", 1);
   cmd_pub_joint3 = nh.advertise<std_msgs::Float32>("/arduino/cmd_pos_joint3", 1);
   cmd_pub_joint4 = nh.advertise<std_msgs::Float32>("/arduino/cmd_pos_joint4", 1);
+  cmd_pub_joint5 = nh.advertise<std_msgs::Float32>("/arduino/cmd_pos_joint5", 1);
   joint_states_sub = nh.subscribe<sensor_msgs::JointState> ("/arduino/joint_states", 1, jointStateCallback);
   
   ros::Duration(1.0).sleep();
@@ -723,7 +770,7 @@ int main(int argc, char** argv)
   {
 	  try{
 	  
-			listener->lookupTransform("base_link", "endeffector",ros::Time(0), transform[3]);
+			listener->lookupTransform("base_link", "link_5",ros::Time(0), transform[3]);
 			get_transform = true;                            
 									 
 									 }
@@ -742,13 +789,50 @@ int main(int argc, char** argv)
   int_marker_joint4.controls.push_back(controlJoint4);
   server->insert(int_marker_joint4, &processJoint4Feedback);
   
+  // Create Joint 5 Control
+  visualization_msgs::InteractiveMarker int_marker_joint5;
+  int_marker_joint5.header.frame_id = "base_link";
+  int_marker_joint5.header.stamp=ros::Time::now();
+  int_marker_joint5.name = "joint5_marker";
+  int_marker_joint5.description = "Joint5 Control";
+  int_marker_joint5.scale = 0.1;
+  visualization_msgs::InteractiveMarkerControl controlJoint5;
+
+  tf::Quaternion orien5(0.0, 1.0, 0.0, 1.0);
+  orien5.normalize();
+  tf::quaternionTFToMsg(orien5, controlJoint5.orientation);
+  controlJoint5.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  controlJoint5.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
+  controlJoint5.always_visible = true;
+  
+  get_transform = false;
+  while (!get_transform)
+  {
+	  try{
+	  
+			listener->lookupTransform("base_link", "end_effector_link",ros::Time(0), transform[4]);
+			get_transform = true;                            
+									 
+									 }
+		catch (tf::TransformException &ex) {
+				ROS_INFO("%s",ex.what());
+				get_transform = false;
+				ros::Duration(1.0).sleep();
+		 }
+  }
+  
+  tf::pointTFToMsg(transform[4].getOrigin(), int_marker_joint5.pose.position);
+  tf::quaternionTFToMsg(transform[4].getRotation(), int_marker_joint5.pose.orientation);
+  
+  int_marker_joint5.controls.push_back(controlJoint5);
+  server->insert(int_marker_joint5, &processJoint5Feedback);
+  
   // Menu insert
   menu_handler.insert("Stop Robot",&processMenuStopCb);
   menu_handler.apply(*server, int_marker.name);
 
   // 'commit' changes and send to all clients
   server->applyChanges();
-  
   
   // create a timer to update the published transforms
   ros::Timer frame_timer = nh.createTimer(ros::Duration(0.01), updatePoseOfAllMarkers);
