@@ -507,12 +507,12 @@ void processJoint5Feedback(const visualization_msgs::InteractiveMarkerFeedbackCo
 				double yaw = tf::getYaw(feedback->pose.orientation);
 				
 				// Take care about limits
-				if (yaw < joint_limits.min(4))
-					yaw = joint_limits.min(4);
+				if (yaw < -0.2)
+					yaw = -0.2;
 				else
 				{  
-					if (yaw > joint_limits.max(4))
-						yaw = joint_limits.max(4);
+					if (yaw > 1.6)
+						yaw = 1.6;
 					else
 						current_rotation[4] = feedback->pose.orientation;
 				}

@@ -6,15 +6,15 @@
  <xacro:include filename="$(find robot_description)/model/materials.xacro" />
 
   <!-- World -->
-  <link name="world_link">
-  </link>
+  <!--<link name="world_link">
+  </link>-->
 
   <!-- World fixed joint-->
-  <joint name="world_fixed_joint" type="fixed">
+  <!--<joint name="world_fixed_joint" type="fixed">
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <parent link="world_link"/>
     <child link="base_link"/>
-  </joint>
+  </joint>-->
   
 
 
@@ -153,7 +153,7 @@
     <child link="link_2"/>
     <origin xyz="0 0.0 0.044" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit velocity="4.8" effort="1" lower="-3.14" upper="3.14" />
+    <limit velocity="0.8" effort="1" lower="-3.14" upper="3.14" />
   </joint>
 
   <!-- link_2 -->
@@ -288,7 +288,7 @@
     <child link="link_gripper_left"/>
     <origin xyz="0 -0.046 0.069" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit velocity="4.8" effort="1" lower="-0.010" upper="0.019" />
+    <limit velocity="4.8" effort="1" lower="0.010" upper="0.019" />
   </joint>
   
   <!-- GripperLeft -->
