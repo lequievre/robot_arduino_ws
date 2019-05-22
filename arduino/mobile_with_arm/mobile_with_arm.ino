@@ -339,8 +339,17 @@ void readGripperDatas()
 
    result = dxl_wb.itemRead(DXL_ID_GRIPPER_JOINT, "Present_Current", &gripper_raw_current, &log);
 
+   float angle = fmod(dxl_wb.convertValue2Radian(DXL_ID_GRIPPER_JOINT, gripper_raw_position),2.0*M_PI);
+   
+   float radius = 0.011;  // the radius of the disk of the motor
+   float distance_between_center_of_link_and_foot_of_biele = 0.0065;
+   float biele_length = 0.028; // the length of the biele
+   float distance = radius*((1-cos(angle))
+                             + ((biele_length/radius)*(1-sqrt(1-(pow(radius,2)/pow(biele_length,2))*pow(sin(angle),2))))
+                             );
+
    joint_current[NB_JOINT_WHEEL+NB_JOINT_ARM] = gripper_raw_current * CURRENT_UNIT;
-   joint_position[NB_JOINT_WHEEL+NB_JOINT_ARM] = fmod(dxl_wb.convertValue2Radian(DXL_ID_GRIPPER_JOINT, gripper_raw_position),2.0*M_PI);
+   joint_position[NB_JOINT_WHEEL+NB_JOINT_ARM] = -1.0*distance;
    joint_velocity[NB_JOINT_WHEEL+NB_JOINT_ARM] = dxl_wb.convertValue2Velocity(DXL_ID_GRIPPER_JOINT, gripper_raw_velocity); 
 }
 
@@ -640,7 +649,7 @@ bool initGripperDynamixels(void)
   const char* log;
   uint16_t model_number = 0;
 
-  result = dxl_wb.jointMode((uint8_t)DXL_ID_GRIPPER_JOINT, 100, 100, &log);
+  result = dxl_wb.jointMode((uint8_t)DXL_ID_GRIPPER_JOINT, 10, 10, &log);
 
   if (result == false)
   {
@@ -711,7 +720,7 @@ bool initArmDynamixels(void)
 
   while (it != map_id_arm_dynamixels.end())
   {
-    result = dxl_wb.jointMode((uint8_t)it->second, 100, 100, &log);
+    result = dxl_wb.jointMode((uint8_t)it->second, 10, 10, &log);
     if (result == false)
     {
       Serial.println(log);
