@@ -342,7 +342,7 @@ Visualization Manager:
         Colliding Link Color: 255; 0; 0
         Goal State Alpha: 1
         Goal State Color: 250; 128; 0
-        Interactive Marker Size: 0
+        Interactive Marker Size: 0.2
         Joint Violation Color: 255; 0; 255
         Planning Group: left_arm
         Query Goal State: true
@@ -648,7 +648,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: /world_link
+    Fixed Frame: /base_link
   Name: root
   Tools:
     - Class: rviz/Interact
@@ -667,7 +667,7 @@ Visualization Manager:
       Name: Current View
       Near Clip Distance: 0.01
       Pitch: 0.509797
-      Target Frame: /world_link
+      Target Frame: /base_link
       Value: XYOrbit (rviz)
       Yaw: 5.65995
     Saved: ~

@@ -205,6 +205,9 @@ rostopic pub -1 /cartesian_velocity_controller/command geometry_msgs/Twist  '{li
 moveIt :
 =======
 
+cd ~/Projects/catkin_arduino_robot_ws
+source devel/setup.bash
+
 Assistant 
 roslaunch moveit_setup_assistant setup_assistant.launch
 (https://ros-planning.github.io/moveit_tutorials/doc/setup_assistant/setup_assistant_tutorial.html)
@@ -535,4 +538,8 @@ We got a problem with the joint_state_publisher (when real arm moved nothing app
 	<rosparam param="source_list">[/arduino/joint_states]</rosparam>
   </node>
   
+
+
+arccos(linear_coord / dynamixel_radius)
+https://answers.ros.org/question/259194/convert-commands-from-prismatic-joint-to-revolute-for-followjointtrajectory-controller-robot-arm-gripper/
 

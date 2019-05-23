@@ -44,7 +44,7 @@ namespace robot_hw
 		
 			int cpt_ = 0;
 			// configuration
-			int n_joints_ = 6; // the arduino robot has 6 joints (wheel right, wheel left, 4 joints for the arm)
+			int n_joints_ = 7; // the arduino robot has 6 joints (wheel right, wheel left, 4 joints for the arm + 1 joint for the gripper)
 			std::vector<std::string> joint_names_; // vector of joints names : (wheel_right, wheel_left, joint1, ...)
 			
 			ros::Subscriber	joint_state_arduino_sub_;
