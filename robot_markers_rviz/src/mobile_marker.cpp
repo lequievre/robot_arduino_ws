@@ -277,6 +277,28 @@ void updatePoseOfAllMarkers(const ros::TimerEvent&)
         
         server->setPose("joint4_marker", p);
         
+         // Marker joint5
+       get_transform = false;
+	   while (!get_transform)
+	   {
+		  try{
+		  
+				listener->lookupTransform("base_link", "end_effector_link",ros::Time(0), transform[4]);
+				get_transform = true;                            
+										 
+										 }
+			catch (tf::TransformException &ex) {
+					ROS_INFO("%s",ex.what());
+					get_transform = false;
+					ros::Duration(1.0).sleep();
+			 }
+		}
+  
+        tf::pointTFToMsg(transform[4].getOrigin(), p.position);
+        p.orientation =  current_rotation[4];
+        //tf::quaternionTFToMsg(transform[4].getRotation(), p.orientation);
+        
+        server->setPose("joint5_marker", p);
         
 		// 'commit' changes and send to all clients
 		server->applyChanges();
