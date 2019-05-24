@@ -530,6 +530,7 @@ move_group c++ node tests
  rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_trajectory_controller'], stop_controllers: [], strictness: 2}"
 4-> rosrun robot_move_group_tests test_random_node
 rosrun robot_move_group_tests test_tutorial_node
+rosrun robot_move_group_tests test_pick_anplace_node
 
 We got a problem with the joint_state_publisher (when real arm moved nothing append in rviz).
 -> Modify the joint publisher part (set correctly the "source_list" paramter) of the file real_move_group_interface.launch
@@ -543,3 +544,13 @@ We got a problem with the joint_state_publisher (when real arm moved nothing app
 arccos(linear_coord / dynamixel_radius)
 https://answers.ros.org/question/259194/convert-commands-from-prismatic-joint-to-revolute-for-followjointtrajectory-controller-robot-arm-gripper/
 
+
+for moveit only launch :
+
+0-> roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+1-> roslaunch robot_hw robotHW.launch
+2-> roslaunch robot_moveit real.launch
+3-> start joint_trajectory_controller
+rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_trajectory_controller'], stop_controllers: [], strictness: 2}"
+
+rostopic pub -1 /arduino/cmd_pos_joint5 std_msgs/Float32 "{data: 2.35}"

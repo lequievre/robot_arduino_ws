@@ -23,6 +23,21 @@ joint_trajectory_controller:
     - joint2
     - joint3
     - joint4
+  constraints:
+    goal_time: 0.5                   # Override default
+    stopped_velocity_tolerance: 0.02 # Override default
+    joint1:
+      trajectory: 0.05               # Not enforced if unspecified
+      goal: 0.02                     # Not enforced if unspecified
+    joint2:
+      trajectory: 0.05               # Not enforced if unspecified
+      goal: 0.02  
+    joint3:
+      trajectory: 0.05               # Not enforced if unspecified
+      goal: 0.02  
+    joint4:
+      trajectory: 0.05               # Not enforced if unspecified
+      goal: 0.02  
 
 #robot_gripper_controller:
 #  type: "position_controllers/JointTrajectoryController"

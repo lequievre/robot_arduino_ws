@@ -144,6 +144,7 @@ include_directories(
 add_executable(test_random_node src/test_random.cpp)
 add_executable(test_custom_node src/test_custom.cpp)
 add_executable(test_tutorial_node src/move_group_interface_tutorial.cpp)
+add_executable(test_pick_and_place_node src/move_group_pick_and_place.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -165,6 +166,10 @@ target_link_libraries(test_custom_node
  )
 
 target_link_libraries(test_tutorial_node
+   ${catkin_LIBRARIES}
+ )
+
+target_link_libraries(test_pick_and_place_node
    ${catkin_LIBRARIES}
  )
 
