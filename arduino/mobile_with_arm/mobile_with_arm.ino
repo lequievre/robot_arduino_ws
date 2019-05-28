@@ -829,9 +829,9 @@ void setup() {
   Serial.begin(57600);
   while(!Serial); // Wait for Opening Serial Monitor
 
-  nh.getHardware()->setBaud(115200);
+  nh.getHardware()->setBaud(57600);
   nh.initNode();
-  nh.getHardware()->setBaud(115200);
+  nh.getHardware()->setBaud(57600);
   //nh.advertise(wheel_joint_states_pub);
   //nh.advertise(arm_joint_states_pub);
 
@@ -944,5 +944,5 @@ void loop() {
   joint_states_pub.publish(&joint_states_msg);
   
   nh.spinOnce();
-  delay(10);
+  delay(50);
 }
