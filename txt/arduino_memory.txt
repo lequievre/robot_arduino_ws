@@ -515,7 +515,7 @@ roscore
 Terminal 3
 export ROS_MASTER_URI=http://192.168.0.1:11311
 export ROS_HOSTNAME=192.168.0.1
-cd ~/Projets
+cd ~/Projects
 cd catkin_arduino_robot_ws
 source devel/setup.bash
 roslaunch robot_description robot_rviz_interactive_marker.launch
@@ -530,7 +530,7 @@ move_group c++ node tests
  rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_trajectory_controller'], stop_controllers: [], strictness: 2}"
 4-> rosrun robot_move_group_tests test_random_node
 rosrun robot_move_group_tests test_tutorial_node
-rosrun robot_move_group_tests test_pick_anplace_node
+rosrun robot_move_group_tests test_pick_and_place_node
 
 We got a problem with the joint_state_publisher (when real arm moved nothing append in rviz).
 -> Modify the joint publisher part (set correctly the "source_list" paramter) of the file real_move_group_interface.launch
