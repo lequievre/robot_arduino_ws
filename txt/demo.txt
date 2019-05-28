@@ -1,0 +1,70 @@
+Verify on Arduino board :
+- Power of motors on Arduino Board is OFF
+- USB cable is connected to raspberry pi
+
+1- Switch ON the laptop to launch the wifi
+ping 192.168.0.1 to verify the ip address of the laptop
+
+2- start roscore on laptop
+cd ~/Projects/catkin_arduino_robot_ws/src/scripts
+./start_roscore.sh
+
+3- Switch ON Raspberry pi, connect arduino, start python com on raspberry pi
+ping 192.168.0.10 (from the laptop to verify if the system of raspberry pi is mounted)
+
+ssh pi@192.168.0.10  (from laptop)
+
+-> Switch ON power of the dynamixels motors
+-> Connect USB cable of Arduino to Raspberry pi
+
+./start_python_usb.sh
+
+RVIZ INTERACTIVE MARKER DEMO
+============================
+4- Start Rviz interactive marker
+./start_rviz_interactive_marker.sh
+
+(No robotHW , No Move group, No joint trajectory controller)
+
+MOVEIT DEMO
+===========
+
+4- Start ROBOT HW on laptop
+cd ~/Projects/catkin_arduino_robot_ws/src/scripts
+./start_robot_hw.sh
+
+5-bis Start Moveit on real robot
+./start_moveit_real.sh
+
+6- Start joint trajectory controller on laptop
+cd ~/Projects/catkin_arduino_robot_ws/src/scripts
+./start_joint_trajectory_controller.sh
+
+MOVE GROUP NODE PICK AND PLACE DEMO
+===================================
+
+4- Start ROBOT HW on laptop
+cd ~/Projects/catkin_arduino_robot_ws/src/scripts
+./start_robot_hw.sh
+
+5- Start Move group on laptop
+cd ~/Projects/catkin_arduino_robot_ws/src/scripts
+./start_moveit_move_group.sh
+
+6- Start joint trajectory controller on laptop
+cd ~/Projects/catkin_arduino_robot_ws/src/scripts
+./start_joint_trajectory_controller.sh
+
+7- Start node pick and place
+./start_node_pick_and_place.sh
+
+
+
+
+
+
+
+
+
+
+
