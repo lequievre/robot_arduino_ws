@@ -304,7 +304,7 @@ controller_list:
 
 launch :
 
-0-> roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=115200
+0-> roslaunch rosserial_server serial.launch port:=/dev/ttyACM0 baud:=57600
 1-> roslaunch robot_hw robotHW.launch
 2-> roslaunch robot_moveit real.launch
 3-> start joint_trajectory_controller
@@ -554,3 +554,10 @@ for moveit only launch :
 rosservice call /controller_manager/switch_controller "{start_controllers: ['joint_trajectory_controller'], stop_controllers: [], strictness: 2}"
 
 rostopic pub -1 /arduino/cmd_pos_joint5 std_msgs/Float32 "{data: 2.35}"
+
+
+
+
+Current Pose x= 0.182583, y=-0.000280, z=0.253623
+[ INFO] [1559133638.798651757]: Current Orientation w=0.024541, x= 0.000767, y=0.999699, z=-0.000019
+
