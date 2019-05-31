@@ -58,6 +58,9 @@ cd ~/Projects/catkin_arduino_robot_ws/src/scripts
 7- Start node pick and place
 ./start_node_pick_and_place.sh
 
+7bis- Start node pre grasp pick and place
+./start_node_pick_and_place_pre_grasp.sh
+
 
 
 

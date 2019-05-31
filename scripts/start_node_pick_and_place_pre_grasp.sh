@@ -1,0 +1,14 @@
+#!/bin/bash
+# Laurent LEQUIEVRE
+# Research Engineer, CNRS (France)
+# laurent.lequievre@uca.fr
+# UMR 6602 - Institut Pascal
+
+export ROS_MASTER_URI=http://192.168.0.1:11311
+
+export ROS_HOSTNAME=192.168.0.1
+
+source ~/Projects/catkin_arduino_robot_ws/devel/setup.bash
+
+rosrun robot_move_group_tests test_pick_and_place_pre_grasp_node
+
