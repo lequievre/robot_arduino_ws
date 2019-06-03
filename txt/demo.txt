@@ -1,6 +1,6 @@
 Verify on Arduino board :
 - Power of motors on Arduino Board is OFF
-- USB cable is connected to raspberry pi
+- USB cable is not connected to raspberry pi
 
 1- Switch ON the laptop to launch the wifi
 ping 192.168.0.1 to verify the ip address of the laptop
