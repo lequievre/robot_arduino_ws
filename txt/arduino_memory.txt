@@ -561,3 +561,27 @@ rostopic pub -1 /arduino/cmd_pos_joint5 std_msgs/Float32 "{data: 2.35}"
 Current Pose x= 0.182583, y=-0.000280, z=0.253623
 [ INFO] [1559133638.798651757]: Current Orientation w=0.024541, x= 0.000767, y=0.999699, z=-0.000019
 
+
+==========================================
+
+Modif wifi avec dns
+
+/etc/network/interfaces.d/wlan0
+
+auto wlan0
+iface wlan0 inet static
+  wpa-ssid "wifininja"
+  wpa-psk "xxxxxx" #the pwd
+  address 192.168.0.10
+  netmask 255.255.255.0
+  gateway 192.168.0.1
+  network 192.168.0.0
+  broadcast 192.168.0.255
+  dns-search example.com
+  dns-nameservers 192.168.0.1 8.8.8.8 4.2.2.1
+
+
+
+
+
+
